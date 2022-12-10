@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 
 type Cell = {
   id: string;
-  directNeighbors: string[];
   neighbors: string[];
   state: "hidden" | "flag" | "visible";
   type: "bomb" | "safe";
@@ -19,32 +18,21 @@ function getGrid(gridSize: number): Cell[] {
 
       return {
         id: `${x},${y}`,
-        directNeighbors: [
-          [0, -1],
-          [-1, 0],
-          // [0, 0],
-          [1, 0],
-          [0, 1],
-        ]
-          .map(([nx, ny]) => [x + nx, y + ny])
-          .filter(([nx, ny]) => nx >= 0 && ny >= 0)
-          .map(([nx, ny]) => `${nx},${ny}`),
         neighbors: [
           [-1, -1],
           [0, -1],
           [1, -1],
-          [-1, 0],
-          // [0, 0],
           [1, 0],
-          [-1, 1],
-          [0, 1],
           [1, 1],
+          [0, 1],
+          [-1, 1],
+          [-1, 0],
         ]
           .map(([nx, ny]) => [x + nx, y + ny])
           .filter(([nx, ny]) => nx >= 0 && ny >= 0)
           .map(([nx, ny]) => `${nx},${ny}`),
         state: "hidden" as const,
-        type: Math.random() > 0.9 ? ("bomb" as const) : ("safe" as const),
+        type: Math.random() > 0.8 ? ("bomb" as const) : ("safe" as const),
         x,
         y,
       };
@@ -57,8 +45,21 @@ function getGrid(gridSize: number): Cell[] {
     }));
 }
 
-function App() {
-  const [gridSize, setGridSize] = useState(16);
+export default function App() {
+  const [gridSize, setGridSize] = useState(() => {
+    const gridSize = Number(localStorage.getItem("gridSize"));
+
+    if (Number.isInteger(gridSize) && gridSize >= 8 && gridSize <= 24) {
+      return gridSize;
+    }
+
+    return 16;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("gridSize", `${gridSize}`);
+  }, [gridSize]);
+
   const [grid, setGrid] = useState(getGrid(gridSize));
 
   useEffect(() => {
@@ -86,30 +87,30 @@ function App() {
         });
       }
 
-      const getSafeCellIds = (safeCellIds: string[]): string[] => {
-        const cells = grid
-          .filter(({ id, directNeighbors, type, value }) => {
-            // ℹ️ Remove value > 0 to resolve the grid
-            if (type === "bomb" || value > 0) {
-              return false;
-            }
+      const getSafeCellIds = (safeCells: Cell[]): string[] => {
+        const safeCellIds = safeCells.map(({ id }) => id);
 
-            if (safeCellIds.includes(id)) {
-              return false;
-            }
-
-            return directNeighbors.some((id) => safeCellIds.includes(id));
-          })
+        const safeNeighborIds = safeCells
+          // ℹ️ Remove this filter to resolve the grid
+          .filter(({ value }) => value === 0)
           .map(({ id }) => id);
+
+        const cells = grid.filter(({ id, neighbors, type }) => {
+          if (type === "bomb" || safeCellIds.includes(id)) {
+            return false;
+          }
+
+          return neighbors.some((id) => safeNeighborIds.includes(id));
+        });
 
         if (cells.length === 0) {
           return safeCellIds;
         }
 
-        return getSafeCellIds(safeCellIds.concat(cells));
+        return getSafeCellIds(safeCells.concat(cells));
       };
 
-      const safeCellIds = getSafeCellIds([targetCell.id]);
+      const safeCellIds = getSafeCellIds([targetCell]);
 
       return grid.map((cell) => {
         if (safeCellIds.includes(cell.id)) {
@@ -130,7 +131,12 @@ function App() {
         if (cell.id === id) {
           return {
             ...cell,
-            state: "flag",
+            state:
+              cell.state === "hidden"
+                ? "flag"
+                : cell.state === "flag"
+                ? "hidden"
+                : cell.state,
           };
         }
 
@@ -169,7 +175,18 @@ function App() {
                 ? "bg-gray-700 hover:border-gray-200 hover:bg-gray-600"
                 : type === "bomb"
                 ? "bg-red-300"
-                : "bg-gray-300 text-gray-900",
+                : [
+                    "text-gray-900",
+                    value === 0
+                      ? "bg-gray-300"
+                      : value === 1
+                      ? "bg-orange-100"
+                      : value === 2
+                      ? "bg-orange-200"
+                      : value === 3
+                      ? "bg-orange-300"
+                      : "bg-orange-400",
+                  ].join(" "),
             ].join(" ")}
             disabled={state === "visible"}
             onClick={() => revealCell(id)}
@@ -184,7 +201,7 @@ function App() {
             ) : state === "flag" ? (
               <span>⛳️</span>
             ) : (
-              <span>{type === "bomb" ? "💣" : value}</span>
+              <span>{type === "bomb" ? "💣" : value || null}</span>
             )}
           </button>
         ))}
@@ -192,5 +209,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
