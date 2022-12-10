@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 
 type Cell = {
   id: string;
@@ -10,15 +10,15 @@ type Cell = {
   y: number;
 };
 
-const minGridSize = 8;
-const maxGridSize = 24;
+const minBoardSize = 8;
+const maxBoardSize = 24;
 const safeRatio = 0.8;
 
-function getGrid(gridSize: number): Cell[] {
-  return Array.from(Array(gridSize * gridSize))
+function getBoard(boardSize: number): Cell[] {
+  return Array.from(Array(boardSize * boardSize))
     .map((_, i) => {
-      const x = i % gridSize;
-      const y = Math.floor(i / gridSize);
+      const x = i % boardSize;
+      const y = Math.floor(i / boardSize);
 
       return {
         id: `${x},${y}`,
@@ -41,47 +41,105 @@ function getGrid(gridSize: number): Cell[] {
         y,
       };
     })
-    .map((cell, _, grid) => ({
+    .map((cell, _, board) => ({
       ...cell,
-      value: grid.filter(
+      value: board.filter(
         ({ id, type }) => type === "bomb" && cell.neighbors.includes(id)
       ).length,
     }));
 }
 
-export default function App() {
-  const [gridSize, setGridSize] = useState(() => {
-    const gridSize = Number(localStorage.getItem("gridSize"));
+function isBoardSizeValid(boardSize: number) {
+  return (
+    Number.isInteger(boardSize) &&
+    boardSize >= minBoardSize &&
+    boardSize <= maxBoardSize
+  );
+}
 
-    if (
-      Number.isInteger(gridSize) &&
-      gridSize >= minGridSize &&
-      gridSize <= maxGridSize
-    ) {
-      return gridSize;
+function saveBoardSize(boardSize: number) {
+  try {
+    localStorage.setItem("boardSize", `${boardSize}`);
+  } catch {}
+}
+
+export default function App() {
+  const boardSizeInputRef = useRef<HTMLInputElement>(null);
+
+  const [boardSize, setBoardSize] = useState(() => {
+    const boardSize = Number(localStorage.getItem("boardSize"));
+
+    if (isBoardSizeValid(boardSize)) {
+      return boardSize;
     }
 
-    return minGridSize + (maxGridSize - minGridSize) / 2;
+    const medianBoardSize = minBoardSize + (maxBoardSize - minBoardSize) / 2;
+
+    saveBoardSize(medianBoardSize);
+
+    return medianBoardSize;
   });
 
-  const [grid, setGrid] = useState<Cell[]>([]);
+  const [board, setBoard] = useState<Cell[]>();
 
-  useEffect(() => {
-    localStorage.setItem("gridSize", `${gridSize}`);
+  if (!board) {
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 py-4">
+        <form
+          className="flex items-center gap-2 px-4 text-gray-300"
+          onSubmit={(e) => {
+            e.preventDefault();
 
-    setGrid(getGrid(gridSize));
-  }, [gridSize]);
+            const inputBoardSize = Number(boardSizeInputRef.current?.value);
+
+            if (!isBoardSizeValid(inputBoardSize)) {
+              return;
+            }
+
+            setBoardSize(inputBoardSize);
+            setBoard(getBoard(inputBoardSize));
+
+            saveBoardSize(inputBoardSize);
+          }}
+        >
+          <label htmlFor="board-size">Board size</label>
+          <input
+            autoFocus
+            className="rounded px-2 py-1 text-gray-900"
+            defaultValue={boardSize}
+            id="board-size"
+            max={maxBoardSize}
+            min={minBoardSize}
+            ref={boardSizeInputRef}
+            required
+            step={1}
+            type="number"
+          />
+          <button
+            className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
+            type="submit"
+          >
+            Start
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   const revealCell = (id: string) => {
-    setGrid((grid) => {
-      const targetCell = grid.find((cell) => cell.id === id);
+    setBoard((board) => {
+      if (!board) {
+        return;
+      }
+
+      const targetCell = board.find((cell) => cell.id === id);
 
       if (!targetCell) {
-        return grid;
+        return board;
       }
 
       if (targetCell.type === "bomb" || targetCell.value > 0) {
-        return grid.map((cell) => {
+        return board.map((cell) => {
           if (cell.id === id) {
             return {
               ...cell,
@@ -101,7 +159,7 @@ export default function App() {
           .filter(({ value }) => value === 0)
           .map(({ id }) => id);
 
-        const cells = grid.filter(({ id, neighbors, type }) => {
+        const cells = board.filter(({ id, neighbors, type }) => {
           if (type === "bomb" || safeCellIds.includes(id)) {
             return false;
           }
@@ -118,7 +176,7 @@ export default function App() {
 
       const safeCellIds = getSafeCellIds([targetCell]);
 
-      return grid.map((cell) => {
+      return board.map((cell) => {
         if (safeCellIds.includes(cell.id)) {
           return {
             ...cell,
@@ -132,8 +190,12 @@ export default function App() {
   };
 
   const flagCell = (id: string) => {
-    setGrid((grid) => {
-      return grid.map((cell) => {
+    setBoard((board) => {
+      if (!board) {
+        return;
+      }
+
+      return board.map((cell) => {
         if (cell.id === id) {
           return {
             ...cell,
@@ -152,36 +214,15 @@ export default function App() {
   };
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4">
-      {grid.some(({ state }) => state !== "hidden") ? (
-        <button
-          className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
-          onClick={() => setGrid(getGrid(gridSize))}
-        >
-          Restart
-        </button>
-      ) : (
-        <label className="flex items-center gap-2 text-gray-300">
-          Grid size
-          <input
-            className="rounded px-2 py-1 text-gray-900"
-            max={maxGridSize}
-            min={minGridSize}
-            onChange={({ target: { value } }) => setGridSize(Number(value))}
-            step={1}
-            type="number"
-            value={gridSize}
-          />
-        </label>
-      )}
+    <div className="flex flex-col gap-4 py-4">
       <div
-        className="grid w-min items-center justify-center gap-1 text-center"
+        className="mx-auto grid w-min gap-1 px-4 text-center"
         style={{
-          gridTemplateRows: `repeat(${gridSize}, 1fr)`,
-          gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
+          gridTemplateRows: `repeat(${boardSize}, 1fr)`,
+          gridTemplateColumns: `repeat(${boardSize}, 1fr)`,
         }}
       >
-        {grid.map(({ id, state, type, value, x, y }, i) => (
+        {board.map(({ id, state, type, value, x, y }, i) => (
           <button
             key={`${x},${y}`}
             className={[
@@ -210,6 +251,7 @@ export default function App() {
 
               flagCell(id);
             }}
+            type="button"
           >
             {state === "hidden" ? (
               <span className="invisible">💣</span>
@@ -221,6 +263,13 @@ export default function App() {
           </button>
         ))}
       </div>
+      <button
+        className="self-center rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
+        onClick={() => setBoard(undefined)}
+        type="button"
+      >
+        Restart
+      </button>
     </div>
   );
 }

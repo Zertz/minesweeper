@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+input:invalid + button {
+  @apply pointer-events-none opacity-75;
+}
