@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 type Cell = {
   id: string;
@@ -9,6 +9,10 @@ type Cell = {
   x: number;
   y: number;
 };
+
+const minGridSize = 8;
+const maxGridSize = 24;
+const safeRatio = 0.8;
 
 function getGrid(gridSize: number): Cell[] {
   return Array.from(Array(gridSize * gridSize))
@@ -32,7 +36,7 @@ function getGrid(gridSize: number): Cell[] {
           .filter(([nx, ny]) => nx >= 0 && ny >= 0)
           .map(([nx, ny]) => `${nx},${ny}`),
         state: "hidden" as const,
-        type: Math.random() > 0.8 ? ("bomb" as const) : ("safe" as const),
+        type: Math.random() > safeRatio ? ("bomb" as const) : ("safe" as const),
         x,
         y,
       };
@@ -49,24 +53,26 @@ export default function App() {
   const [gridSize, setGridSize] = useState(() => {
     const gridSize = Number(localStorage.getItem("gridSize"));
 
-    if (Number.isInteger(gridSize) && gridSize >= 8 && gridSize <= 24) {
+    if (
+      Number.isInteger(gridSize) &&
+      gridSize >= minGridSize &&
+      gridSize <= maxGridSize
+    ) {
       return gridSize;
     }
 
-    return 16;
+    return minGridSize + (maxGridSize - minGridSize) / 2;
   });
+
+  const [grid, setGrid] = useState<Cell[]>([]);
 
   useEffect(() => {
     localStorage.setItem("gridSize", `${gridSize}`);
-  }, [gridSize]);
 
-  const [grid, setGrid] = useState(getGrid(gridSize));
-
-  useEffect(() => {
     setGrid(getGrid(gridSize));
   }, [gridSize]);
 
-  const revealCell = useCallback((id: string) => {
+  const revealCell = (id: string) => {
     setGrid((grid) => {
       const targetCell = grid.find((cell) => cell.id === id);
 
@@ -91,7 +97,7 @@ export default function App() {
         const safeCellIds = safeCells.map(({ id }) => id);
 
         const safeNeighborIds = safeCells
-          // ℹ️ Remove this filter to resolve the grid
+          // ℹ️ Remove this filter to instantly resolve the game
           .filter(({ value }) => value === 0)
           .map(({ id }) => id);
 
@@ -123,9 +129,9 @@ export default function App() {
         return cell;
       });
     });
-  }, []);
+  };
 
-  const flagCell = useCallback((id: string) => {
+  const flagCell = (id: string) => {
     setGrid((grid) => {
       return grid.map((cell) => {
         if (cell.id === id) {
@@ -143,22 +149,31 @@ export default function App() {
         return cell;
       });
     });
-  }, []);
+  };
 
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4">
-      <label className="flex items-center gap-2 text-gray-300">
-        Grid size
-        <input
-          className="rounded px-2 py-1 text-gray-900"
-          max={24}
-          min={8}
-          onChange={({ target: { value } }) => setGridSize(Number(value))}
-          step={1}
-          type="number"
-          value={gridSize}
-        />
-      </label>
+      {grid.some(({ state }) => state !== "hidden") ? (
+        <button
+          className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
+          onClick={() => setGrid(getGrid(gridSize))}
+        >
+          Restart
+        </button>
+      ) : (
+        <label className="flex items-center gap-2 text-gray-300">
+          Grid size
+          <input
+            className="rounded px-2 py-1 text-gray-900"
+            max={maxGridSize}
+            min={minGridSize}
+            onChange={({ target: { value } }) => setGridSize(Number(value))}
+            step={1}
+            type="number"
+            value={gridSize}
+          />
+        </label>
+      )}
       <div
         className="grid w-min items-center justify-center gap-1 text-center"
         style={{
