@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useReducer, useRef } from "react";
 
 type Cell = {
   id: string;
@@ -8,6 +8,40 @@ type Cell = {
   value: number;
   x: number;
   y: number;
+};
+
+type Action =
+  | {
+      type: "newGame";
+    }
+  | {
+      type: "startGame";
+      payload: {
+        boardSize: number;
+      };
+    }
+  | {
+      type: "restartGame";
+    }
+  | {
+      type: "revealCell";
+      payload: {
+        id: string;
+      };
+    }
+  | {
+      type: "flagCell";
+      payload: {
+        id: string;
+      };
+    };
+
+type State = {
+  board: Cell[] | undefined;
+  boardSize: number | undefined;
+  startTime: number | undefined;
+  finishTime: number | undefined;
+  state: "idle" | "in-progress" | "win" | "lose";
 };
 
 const minBoardSize = 8;
@@ -63,24 +97,189 @@ function saveBoardSize(boardSize: number) {
   } catch {}
 }
 
+function flagCell(board: Cell[], id: string): Cell[] {
+  return board.map((cell) => {
+    if (cell.id === id) {
+      return {
+        ...cell,
+        state:
+          cell.state === "hidden"
+            ? "flag"
+            : cell.state === "flag"
+            ? "hidden"
+            : cell.state,
+      };
+    }
+
+    return cell;
+  });
+}
+
+function revealCell(board: Cell[], id: string): Cell[] {
+  const targetCell = board.find((cell) => cell.id === id);
+
+  if (!targetCell) {
+    return board;
+  }
+
+  if (targetCell.state === "flag") {
+    return board.map((cell) => {
+      if (cell.id === id) {
+        return {
+          ...cell,
+          state: "hidden",
+        };
+      }
+
+      return cell;
+    });
+  }
+
+  if (targetCell.type === "bomb" || targetCell.value > 0) {
+    return board.map((cell) => {
+      if (cell.id === id) {
+        return {
+          ...cell,
+          state: "visible",
+        };
+      }
+
+      return cell;
+    });
+  }
+
+  const getSafeCellIds = (safeCells: Cell[]): string[] => {
+    const safeCellIds = safeCells.map(({ id }) => id);
+
+    const safeNeighborIds = safeCells
+      // ℹ️ Remove this filter to instantly resolve the game
+      .filter(({ value }) => value === 0)
+      .map(({ id }) => id);
+
+    const cells = board.filter(({ id, neighbors, type }) => {
+      if (type === "bomb" || safeCellIds.includes(id)) {
+        return false;
+      }
+
+      return neighbors.some((id) => safeNeighborIds.includes(id));
+    });
+
+    if (cells.length === 0) {
+      return safeCellIds;
+    }
+
+    return getSafeCellIds(safeCells.concat(cells));
+  };
+
+  const safeCellIds = getSafeCellIds([targetCell]);
+
+  return board.map((cell) => {
+    if (safeCellIds.includes(cell.id)) {
+      return {
+        ...cell,
+        state: "visible",
+      };
+    }
+
+    return cell;
+  });
+}
+
+const initialState = {
+  board: undefined,
+  boardSize: undefined,
+  startTime: undefined,
+  finishTime: undefined,
+  state: "idle" as const,
+};
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "newGame": {
+      return initialState;
+    }
+    case "startGame": {
+      return {
+        board: getBoard(action.payload.boardSize),
+        boardSize: action.payload.boardSize,
+        startTime: Date.now(),
+        finishTime: undefined,
+        state: "in-progress",
+      };
+    }
+    case "restartGame": {
+      if (!state.board) {
+        throw new Error("Game not started");
+      }
+
+      return {
+        board: state.board.map((cell) => ({ ...cell, state: "hidden" })),
+        boardSize: state.boardSize,
+        startTime: undefined,
+        finishTime: undefined,
+        state: "in-progress",
+      };
+    }
+    case "flagCell": {
+      if (!state.board) {
+        throw new Error("Game not started");
+      }
+
+      return {
+        board: flagCell(state.board, action.payload.id),
+        boardSize: state.boardSize,
+        startTime: state.startTime,
+        finishTime: undefined,
+        state: "in-progress",
+      };
+    }
+    case "revealCell": {
+      if (!state.board) {
+        throw new Error("Game not started");
+      }
+
+      const board = revealCell(state.board, action.payload.id);
+
+      const didLoseGame = board.some(
+        (cell) => cell.state === "visible" && cell.type === "bomb"
+      );
+
+      const didWinGame =
+        !didLoseGame &&
+        board
+          .filter((cell) => cell.state === "hidden")
+          .every((cell) => cell.type === "bomb");
+
+      return {
+        board: revealCell(state.board, action.payload.id),
+        boardSize: state.boardSize,
+        startTime: state.startTime || Date.now(),
+        finishTime: didLoseGame || didWinGame ? Date.now() : undefined,
+        state: didLoseGame ? "lose" : didWinGame ? "win" : "in-progress",
+      };
+    }
+  }
+}
+
+const defaultBoardSize = (() => {
+  const boardSize = Number(localStorage.getItem("boardSize"));
+
+  if (isBoardSizeValid(boardSize)) {
+    return boardSize;
+  }
+
+  const medianBoardSize = minBoardSize + (maxBoardSize - minBoardSize) / 2;
+
+  saveBoardSize(medianBoardSize);
+
+  return medianBoardSize;
+})();
+
 export default function App() {
   const boardSizeInputRef = useRef<HTMLInputElement>(null);
 
-  const [boardSize, setBoardSize] = useState(() => {
-    const boardSize = Number(localStorage.getItem("boardSize"));
-
-    if (isBoardSizeValid(boardSize)) {
-      return boardSize;
-    }
-
-    const medianBoardSize = minBoardSize + (maxBoardSize - minBoardSize) / 2;
-
-    saveBoardSize(medianBoardSize);
-
-    return medianBoardSize;
-  });
-
-  const [board, setBoard] = useState<Cell[]>();
+  const [{ board, boardSize, startTime, finishTime, state }, dispatch] =
+    useReducer(reducer, initialState);
 
   if (!board) {
     return (
@@ -95,8 +294,12 @@ export default function App() {
             return;
           }
 
-          setBoardSize(inputBoardSize);
-          setBoard(getBoard(inputBoardSize));
+          dispatch({
+            type: "startGame",
+            payload: {
+              boardSize: inputBoardSize,
+            },
+          });
 
           saveBoardSize(inputBoardSize);
         }}
@@ -105,7 +308,7 @@ export default function App() {
         <input
           autoFocus
           className="rounded px-2 py-1 text-gray-900"
-          defaultValue={boardSize}
+          defaultValue={defaultBoardSize}
           id="board-size"
           max={maxBoardSize}
           min={minBoardSize}
@@ -124,108 +327,28 @@ export default function App() {
     );
   }
 
-  const revealCell = (id: string) => {
-    setBoard((board) => {
-      if (!board) {
-        return;
-      }
-
-      const targetCell = board.find((cell) => cell.id === id);
-
-      if (!targetCell) {
-        return board;
-      }
-
-      if (targetCell.state === "flag") {
-        return board.map((cell) => {
-          if (cell.id === id) {
-            return {
-              ...cell,
-              state: "hidden",
-            };
-          }
-
-          return cell;
-        });
-      }
-
-      if (targetCell.type === "bomb" || targetCell.value > 0) {
-        return board.map((cell) => {
-          if (cell.id === id) {
-            return {
-              ...cell,
-              state: "visible",
-            };
-          }
-
-          return cell;
-        });
-      }
-
-      const getSafeCellIds = (safeCells: Cell[]): string[] => {
-        const safeCellIds = safeCells.map(({ id }) => id);
-
-        const safeNeighborIds = safeCells
-          // ℹ️ Remove this filter to instantly resolve the game
-          .filter(({ value }) => value === 0)
-          .map(({ id }) => id);
-
-        const cells = board.filter(({ id, neighbors, type }) => {
-          if (type === "bomb" || safeCellIds.includes(id)) {
-            return false;
-          }
-
-          return neighbors.some((id) => safeNeighborIds.includes(id));
-        });
-
-        if (cells.length === 0) {
-          return safeCellIds;
-        }
-
-        return getSafeCellIds(safeCells.concat(cells));
-      };
-
-      const safeCellIds = getSafeCellIds([targetCell]);
-
-      return board.map((cell) => {
-        if (safeCellIds.includes(cell.id)) {
-          return {
-            ...cell,
-            state: "visible",
-          };
-        }
-
-        return cell;
-      });
-    });
-  };
-
-  const flagCell = (id: string) => {
-    setBoard((board) => {
-      if (!board) {
-        return;
-      }
-
-      return board.map((cell) => {
-        if (cell.id === id) {
-          return {
-            ...cell,
-            state:
-              cell.state === "hidden"
-                ? "flag"
-                : cell.state === "flag"
-                ? "hidden"
-                : cell.state,
-          };
-        }
-
-        return cell;
-      });
-    });
-  };
-
   return (
     <>
+      {startTime && finishTime && (
+        <div className="absolute inset-0 flex scale-150 flex-col items-center justify-center bg-gray-700/75 text-gray-300">
+          <span className="mb-4 text-7xl">{state === "win" ? "🎉" : "💥"}</span>
+          <span className="text-xl">
+            {state === "win"
+              ? "Awesome! You finished in"
+              : "Oh no! You blew it in"}
+          </span>
+          <span className="text-xl">{`${Math.round(
+            (finishTime - startTime) / 1000
+          )} seconds!`}</span>
+          <button
+            className="mt-4 rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
+            onClick={() => dispatch({ type: "newGame" })}
+            type="button"
+          >
+            New game
+          </button>
+        </div>
+      )}
       <div
         className="m-auto grid w-min select-none gap-1 px-4 text-center"
         style={{
@@ -253,11 +376,11 @@ export default function App() {
                 : "bg-orange-400",
             ].join(" ")}
             disabled={state === "visible"}
-            onClick={() => revealCell(id)}
+            onClick={() => dispatch({ type: "revealCell", payload: { id } })}
             onContextMenu={(e) => {
               e.preventDefault();
 
-              flagCell(id);
+              dispatch({ type: "flagCell", payload: { id } });
             }}
           >
             {state === "hidden"
@@ -270,13 +393,16 @@ export default function App() {
           </button>
         ))}
       </div>
-      <button
-        className="sticky left-1/2 -translate-x-1/2 self-center rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
-        onClick={() => setBoard(undefined)}
-        type="button"
-      >
-        Restart
-      </button>
+      <div className="sticky left-1/2 flex -translate-x-1/2 gap-4 self-center">
+        <button
+          className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
+          hidden={!!finishTime}
+          onClick={() => dispatch({ type: "newGame" })}
+          type="button"
+        >
+          New game
+        </button>
+      </div>
     </>
   );
 }
