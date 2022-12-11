@@ -84,45 +84,43 @@ export default function App() {
 
   if (!board) {
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 py-4">
-        <form
-          className="flex items-center gap-2 px-4 text-gray-300"
-          onSubmit={(e) => {
-            e.preventDefault();
+      <form
+        className="m-auto flex items-center gap-2 px-4 text-gray-300"
+        onSubmit={(e) => {
+          e.preventDefault();
 
-            const inputBoardSize = Number(boardSizeInputRef.current?.value);
+          const inputBoardSize = Number(boardSizeInputRef.current?.value);
 
-            if (!isBoardSizeValid(inputBoardSize)) {
-              return;
-            }
+          if (!isBoardSizeValid(inputBoardSize)) {
+            return;
+          }
 
-            setBoardSize(inputBoardSize);
-            setBoard(getBoard(inputBoardSize));
+          setBoardSize(inputBoardSize);
+          setBoard(getBoard(inputBoardSize));
 
-            saveBoardSize(inputBoardSize);
-          }}
+          saveBoardSize(inputBoardSize);
+        }}
+      >
+        <label htmlFor="board-size">Board size</label>
+        <input
+          autoFocus
+          className="rounded px-2 py-1 text-gray-900"
+          defaultValue={boardSize}
+          id="board-size"
+          max={maxBoardSize}
+          min={minBoardSize}
+          ref={boardSizeInputRef}
+          required
+          step={1}
+          type="number"
+        />
+        <button
+          className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
+          type="submit"
         >
-          <label htmlFor="board-size">Board size</label>
-          <input
-            autoFocus
-            className="rounded px-2 py-1 text-gray-900"
-            defaultValue={boardSize}
-            id="board-size"
-            max={maxBoardSize}
-            min={minBoardSize}
-            ref={boardSizeInputRef}
-            required
-            step={1}
-            type="number"
-          />
-          <button
-            className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
-            type="submit"
-          >
-            Start
-          </button>
-        </form>
-      </div>
+          Start
+        </button>
+      </form>
     );
   }
 
@@ -227,9 +225,9 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col gap-4 py-4">
+    <>
       <div
-        className="mx-auto grid w-min select-none gap-1 px-4 text-center"
+        className="m-auto grid w-min select-none gap-1 px-4 text-center"
         style={{
           gridTemplateRows: `repeat(${boardSize}, 1fr)`,
           gridTemplateColumns: `repeat(${boardSize}, 1fr)`,
@@ -239,23 +237,20 @@ export default function App() {
           <button
             key={`${x},${y}`}
             className={[
-              "flex aspect-square w-8 items-center justify-center rounded border border-gray-300 p-1 transition-colors",
+              "cell",
               state !== "visible"
-                ? "bg-gray-700 hover:border-gray-200 hover:bg-gray-600"
+                ? "h"
                 : type === "bomb"
                 ? "bg-red-300"
-                : [
-                    "text-gray-900",
-                    value === 0
-                      ? "bg-gray-300"
-                      : value === 1
-                      ? "bg-orange-100"
-                      : value === 2
-                      ? "bg-orange-200"
-                      : value === 3
-                      ? "bg-orange-300"
-                      : "bg-orange-400",
-                  ].join(" "),
+                : value === 0
+                ? "bg-gray-300"
+                : value === 1
+                ? "bg-orange-100"
+                : value === 2
+                ? "bg-orange-200"
+                : value === 3
+                ? "bg-orange-300"
+                : "bg-orange-400",
             ].join(" ")}
             disabled={state === "visible"}
             onClick={() => revealCell(id)}
@@ -264,25 +259,24 @@ export default function App() {
 
               flagCell(id);
             }}
-            type="button"
           >
-            {state === "hidden" ? (
-              <span className="invisible">💣</span>
-            ) : state === "flag" ? (
-              <span>⛳️</span>
-            ) : (
-              <span>{type === "bomb" ? "💣" : value || null}</span>
-            )}
+            {state === "hidden"
+              ? null
+              : state === "flag"
+              ? "⛳️"
+              : type === "bomb"
+              ? "💣"
+              : value || null}
           </button>
         ))}
       </div>
       <button
-        className="self-center rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
+        className="sticky left-1/2 -translate-x-1/2 self-center rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
         onClick={() => setBoard(undefined)}
         type="button"
       >
         Restart
       </button>
-    </div>
+    </>
   );
 }
