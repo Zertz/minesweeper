@@ -138,6 +138,19 @@ export default function App() {
         return board;
       }
 
+      if (targetCell.state === "flag") {
+        return board.map((cell) => {
+          if (cell.id === id) {
+            return {
+              ...cell,
+              state: "hidden",
+            };
+          }
+
+          return cell;
+        });
+      }
+
       if (targetCell.type === "bomb" || targetCell.value > 0) {
         return board.map((cell) => {
           if (cell.id === id) {
@@ -216,7 +229,7 @@ export default function App() {
   return (
     <div className="flex flex-col gap-4 py-4">
       <div
-        className="mx-auto grid w-min gap-1 px-4 text-center"
+        className="mx-auto grid w-min select-none gap-1 px-4 text-center"
         style={{
           gridTemplateRows: `repeat(${boardSize}, 1fr)`,
           gridTemplateColumns: `repeat(${boardSize}, 1fr)`,
