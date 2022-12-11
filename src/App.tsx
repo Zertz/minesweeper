@@ -2,7 +2,7 @@ import { Board } from "./Board";
 import { StartGame } from "./StartGame";
 import { useBoard } from "./useBoard";
 
-export default function App() {
+export function App() {
   const { board, startGame, ...rest } = useBoard();
 
   if (!board) {
