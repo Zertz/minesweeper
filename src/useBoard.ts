@@ -115,6 +115,8 @@ function reducer(state: State, action: Action): State {
   }
 }
 
+export type UseBoard = ReturnType<typeof useBoard>;
+
 export function useBoard() {
   const [{ board, boardSize, startTime, finishTime, state }, dispatch] =
     useReducer(reducer, initialState);
