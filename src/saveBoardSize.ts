@@ -1,5 +1,7 @@
 export function saveBoardSize(boardSize: number) {
   try {
     localStorage.setItem("boardSize", `${boardSize}`);
-  } catch {}
+  } catch {
+    // Some browsers throw in private mode
+  }
 }

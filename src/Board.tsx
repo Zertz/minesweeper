@@ -42,7 +42,7 @@ export function Board({
           gridTemplateColumns: `repeat(${boardSize}, 1fr)`,
         }}
       >
-        {board.map(({ id, state, type, value, x, y }, i) => (
+        {board.map(({ id, state, type, value, x, y }) => (
           <button
             key={`${x},${y}`}
             className={[
