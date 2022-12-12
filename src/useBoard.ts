@@ -39,12 +39,12 @@ type State = {
   state: "idle" | "in-progress" | "win" | "lose";
 };
 
-const initialState = {
+const initialState: State = {
   board: undefined,
   boardSize: undefined,
   startTime: undefined,
   finishTime: undefined,
-  state: "idle" as const,
+  state: "idle",
 };
 
 function reducer(state: State, action: Action): State {

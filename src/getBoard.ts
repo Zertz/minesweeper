@@ -4,7 +4,7 @@ const safeRatio = 0.8;
 
 export function getBoard(boardSize: number): Cell[] {
   return Array.from(Array(boardSize * boardSize))
-    .map((_, i) => {
+    .map<Omit<Cell, "value">>((_, i) => {
       const x = i % boardSize;
       const y = Math.floor(i / boardSize);
 
@@ -23,8 +23,8 @@ export function getBoard(boardSize: number): Cell[] {
           .map(([nx, ny]) => [x + nx, y + ny])
           .filter(([nx, ny]) => nx >= 0 && ny >= 0)
           .map(([nx, ny]) => `${nx},${ny}`),
-        state: "hidden" as const,
-        type: Math.random() > safeRatio ? ("bomb" as const) : ("safe" as const),
+        state: "hidden",
+        type: Math.random() > safeRatio ? "bomb" : "safe",
         x,
         y,
       };
