@@ -104,11 +104,23 @@ function reducer(state: State, action: Action): State {
           .filter((cell) => cell.state === "hidden")
           .every((cell) => cell.type === "bomb");
 
+      const didFinishGame = didLoseGame || didWinGame;
+
       return {
-        board: revealCell(state.board, action.payload.id),
+        board: didFinishGame
+          ? board.map((cell) => ({
+              ...cell,
+              state:
+                cell.type !== "bomb"
+                  ? cell.state
+                  : didWinGame
+                  ? "flag"
+                  : "visible",
+            }))
+          : board,
         boardSize: state.boardSize,
         startTime: state.startTime || Date.now(),
-        finishTime: didLoseGame || didWinGame ? Date.now() : undefined,
+        finishTime: didFinishGame ? Date.now() : undefined,
         state: didLoseGame ? "lose" : didWinGame ? "win" : "in-progress",
       };
     }
