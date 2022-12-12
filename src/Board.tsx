@@ -9,10 +9,7 @@ export function Board({
   newGame,
   flagCell,
   revealCell,
-}: { board: Exclude<UseBoard["board"], undefined> } & Omit<
-  UseBoard,
-  "board" | "startGame"
->) {
+}: Omit<UseBoard, "startGame">) {
   return (
     <>
       {startTime && finishTime && (
@@ -42,7 +39,7 @@ export function Board({
           gridTemplateColumns: `repeat(${boardSize}, 1fr)`,
         }}
       >
-        {board.map(({ id, state, type, value, x, y }) => (
+        {board?.map(({ id, state, type, value, x, y }) => (
           <button
             key={`${x},${y}`}
             className={[

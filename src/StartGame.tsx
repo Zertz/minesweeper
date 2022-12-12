@@ -6,12 +6,20 @@ import {
 } from "./isBoardSizeValid";
 import { UseBoard } from "./useBoard";
 
-export function StartGame({ startGame }: Pick<UseBoard, "startGame">) {
+export function StartGame({
+  startGame,
+  state,
+}: Pick<UseBoard, "startGame" | "state">) {
   const defaultBoardSize = getDefaultBoardSize();
 
   return (
     <form
-      className="m-auto flex flex-col gap-4 px-4 text-gray-300"
+      className={[
+        "absolute inset-4 flex flex-col items-center justify-center gap-4 bg-gray-900 text-gray-300",
+        state === "idle"
+          ? ""
+          : "pointer-events-none animate-fade-out opacity-0",
+      ].join(" ")}
       onSubmit={(e) => {
         e.preventDefault();
 
@@ -28,7 +36,7 @@ export function StartGame({ startGame }: Pick<UseBoard, "startGame">) {
         startGame(inputBoardSize);
       }}
     >
-      <div className="grid grid-cols-2 grid-rows-2 gap-4 sm:grid-cols-4 sm:grid-rows-1">
+      <div className="grid grid-cols-2 grid-rows-[1fr,1fr,min-content] gap-4 sm:grid-cols-4 sm:grid-rows-[1fr,min-content]">
         <input
           className="hidden"
           defaultChecked={defaultBoardSize === 8}
@@ -102,13 +110,13 @@ export function StartGame({ startGame }: Pick<UseBoard, "startGame">) {
             type="number"
           />
         </label>
+        <button
+          className="col-span-2 row-start-3 rounded border border-gray-300 bg-gray-700 px-2 py-1 font-bold text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600 sm:col-span-4 sm:row-start-2"
+          type="submit"
+        >
+          Play
+        </button>
       </div>
-      <button
-        className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
-        type="submit"
-      >
-        Start
-      </button>
     </form>
   );
 }

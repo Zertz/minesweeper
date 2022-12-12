@@ -3,11 +3,12 @@ import { StartGame } from "./StartGame";
 import { useBoard } from "./useBoard";
 
 export function App() {
-  const { board, startGame, ...rest } = useBoard();
+  const { startGame, ...rest } = useBoard();
 
-  if (!board) {
-    return <StartGame startGame={startGame} />;
-  }
-
-  return <Board board={board} {...rest} />;
+  return (
+    <>
+      <Board {...rest} />
+      <StartGame startGame={startGame} state={rest.state} />
+    </>
+  );
 }
