@@ -1,9 +1,9 @@
 import { useReducer } from "react";
 import { flagCell } from "./flagCell";
-import { getBoard } from "./getBoard";
+import { getEmptyBoard } from "./getEmptyBoard";
+import { mineBoard } from "./mineBoard";
 import { revealCell } from "./revealCell";
-import { saveBoardSize } from "./saveBoardSize";
-import { Cell } from "./types";
+import { BoardConfiguration, Cell } from "./types";
 
 type Action =
   | {
@@ -12,11 +12,8 @@ type Action =
   | {
       type: "startGame";
       payload: {
-        boardSize: number;
+        boardConfiguration: BoardConfiguration;
       };
-    }
-  | {
-      type: "restartGame";
     }
   | {
       type: "revealCell";
@@ -33,7 +30,8 @@ type Action =
 
 type State = {
   board: Cell[] | undefined;
-  boardSize: number | undefined;
+  boardConfiguration: BoardConfiguration | undefined;
+  revealedCells: number;
   startTime: number | undefined;
   finishTime: number | undefined;
   state: "idle" | "in-progress" | "win" | "lose";
@@ -41,7 +39,8 @@ type State = {
 
 const initialState: State = {
   board: undefined,
-  boardSize: undefined,
+  boardConfiguration: undefined,
+  revealedCells: 0,
   startTime: undefined,
   finishTime: undefined,
   state: "idle",
@@ -54,21 +53,9 @@ function reducer(state: State, action: Action): State {
     }
     case "startGame": {
       return {
-        board: getBoard(action.payload.boardSize),
-        boardSize: action.payload.boardSize,
-        startTime: Date.now(),
-        finishTime: undefined,
-        state: "in-progress",
-      };
-    }
-    case "restartGame": {
-      if (!state.board) {
-        throw new Error("Game not started");
-      }
-
-      return {
-        board: state.board.map((cell) => ({ ...cell, state: "hidden" })),
-        boardSize: state.boardSize,
+        board: getEmptyBoard(action.payload.boardConfiguration),
+        boardConfiguration: action.payload.boardConfiguration,
+        revealedCells: 0,
         startTime: undefined,
         finishTime: undefined,
         state: "in-progress",
@@ -81,28 +68,39 @@ function reducer(state: State, action: Action): State {
 
       return {
         board: flagCell(state.board, action.payload.id),
-        boardSize: state.boardSize,
-        startTime: state.startTime,
+        boardConfiguration: state.boardConfiguration,
+        revealedCells: state.revealedCells,
+        startTime: state.startTime || Date.now(),
         finishTime: undefined,
         state: "in-progress",
       };
     }
     case "revealCell": {
-      if (!state.board) {
+      if (!state.board || !state.boardConfiguration) {
         throw new Error("Game not started");
       }
 
-      const board = revealCell(state.board, action.payload.id);
+      const board =
+        state.revealedCells === 0
+          ? revealCell(
+              mineBoard(
+                state.boardConfiguration,
+                state.board,
+                action.payload.id
+              ),
+              action.payload.id
+            )
+          : revealCell(state.board, action.payload.id);
 
       const didLoseGame = board.some(
-        (cell) => cell.state === "visible" && cell.type === "bomb"
+        (cell) => cell.state === "visible" && cell.type === "mine"
       );
 
       const didWinGame =
         !didLoseGame &&
         board
           .filter((cell) => cell.state === "hidden")
-          .every((cell) => cell.type === "bomb");
+          .every((cell) => cell.type === "mine");
 
       const didFinishGame = didLoseGame || didWinGame;
 
@@ -111,14 +109,15 @@ function reducer(state: State, action: Action): State {
           ? board.map((cell) => ({
               ...cell,
               state:
-                cell.type !== "bomb"
+                cell.type !== "mine"
                   ? cell.state
                   : didWinGame
                   ? "flag"
                   : "visible",
             }))
           : board,
-        boardSize: state.boardSize,
+        boardConfiguration: state.boardConfiguration,
+        revealedCells: state.revealedCells + 1,
         startTime: state.startTime || Date.now(),
         finishTime: didFinishGame ? Date.now() : undefined,
         state: didLoseGame ? "lose" : didWinGame ? "win" : "in-progress",
@@ -130,22 +129,25 @@ function reducer(state: State, action: Action): State {
 export type UseBoard = ReturnType<typeof useBoard>;
 
 export function useBoard() {
-  const [{ board, boardSize, startTime, finishTime, state }, dispatch] =
-    useReducer(reducer, initialState);
+  const [
+    { board, boardConfiguration, startTime, finishTime, state },
+    dispatch,
+  ] = useReducer(reducer, initialState);
 
   return {
     board,
-    boardSize,
+    boardConfiguration,
     startTime,
     finishTime,
     state,
     newGame() {
       dispatch({ type: "newGame" });
     },
-    startGame(boardSize: number) {
-      dispatch({ type: "startGame", payload: { boardSize } });
-
-      saveBoardSize(boardSize);
+    startGame(boardConfiguration: BoardConfiguration) {
+      dispatch({
+        type: "startGame",
+        payload: { boardConfiguration },
+      });
     },
     flagCell(id: string) {
       dispatch({ type: "flagCell", payload: { id } });

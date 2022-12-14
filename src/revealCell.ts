@@ -20,7 +20,7 @@ export function revealCell(board: Cell[], id: string): Cell[] {
     });
   }
 
-  if (targetCell.type === "bomb" || targetCell.value > 0) {
+  if (targetCell.type === "mine" || targetCell.value > 0) {
     return board.map((cell) => {
       if (cell.id === id) {
         return {
@@ -42,7 +42,7 @@ export function revealCell(board: Cell[], id: string): Cell[] {
       .map(({ id }) => id);
 
     const cells = board.filter(({ id, neighbors, type }) => {
-      if (type === "bomb" || safeCellIds.includes(id)) {
+      if (type === "mine" || safeCellIds.includes(id)) {
         return false;
       }
 

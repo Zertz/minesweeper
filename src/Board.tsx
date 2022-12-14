@@ -2,7 +2,7 @@ import { UseBoard } from "./useBoard";
 
 export function Board({
   board,
-  boardSize,
+  boardConfiguration,
   startTime,
   finishTime,
   state,
@@ -35,8 +35,8 @@ export function Board({
       <div
         className="m-auto grid w-min select-none gap-1 px-4 text-center"
         style={{
-          gridTemplateRows: `repeat(${boardSize}, 1fr)`,
-          gridTemplateColumns: `repeat(${boardSize}, 1fr)`,
+          gridTemplateRows: `repeat(${boardConfiguration?.y}, 1fr)`,
+          gridTemplateColumns: `repeat(${boardConfiguration?.x}, 1fr)`,
         }}
       >
         {board?.map(({ id, state, type, value, x, y }) => (
@@ -46,7 +46,7 @@ export function Board({
               "cell",
               state !== "visible"
                 ? "h"
-                : type === "bomb"
+                : type === "mine"
                 ? "bg-red-300"
                 : value === 0
                 ? "bg-gray-300"
@@ -70,7 +70,7 @@ export function Board({
               ? null
               : state === "flag"
               ? "⛳️"
-              : type === "bomb"
+              : type === "mine"
               ? "💣"
               : value || null}
           </button>

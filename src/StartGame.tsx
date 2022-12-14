@@ -1,16 +1,14 @@
-import { getDefaultBoardSize } from "./getDefaultBoardSize";
-import {
-  isBoardSizeValid,
-  maxBoardSize,
-  minBoardSize,
-} from "./isBoardSizeValid";
+import { Fragment } from "react";
+import { difficulties } from "./difficulties";
+import { getSavedDifficulty } from "./getSavedDifficulty";
+import { saveDifficulty } from "./saveDifficulty";
 import { UseBoard } from "./useBoard";
 
 export function StartGame({
   startGame,
   state,
 }: Pick<UseBoard, "startGame" | "state">) {
-  const defaultBoardSize = getDefaultBoardSize();
+  const savedDifficulty = getSavedDifficulty();
 
   return (
     <form
@@ -23,95 +21,49 @@ export function StartGame({
       onSubmit={(e) => {
         e.preventDefault();
 
-        const { customSize, size } = Object.fromEntries(
-          new FormData(e.currentTarget).entries()
+        const { difficulty } = Object.fromEntries(
+          Array.from(new FormData(e.currentTarget).entries()).map(([k, v]) => [
+            k,
+            v.toString(),
+          ])
         );
 
-        const inputBoardSize = Number(size || customSize);
+        const boardConfiguration = difficulties.find(
+          ({ id }) => id === difficulty
+        );
 
-        if (!isBoardSizeValid(inputBoardSize)) {
+        if (!boardConfiguration) {
           return;
         }
 
-        startGame(inputBoardSize);
+        startGame(boardConfiguration);
+
+        saveDifficulty(difficulty);
       }}
     >
-      <div className="grid grid-cols-2 grid-rows-[1fr,1fr,min-content] gap-4 sm:grid-cols-4 sm:grid-rows-[1fr,min-content]">
-        <input
-          className="hidden"
-          defaultChecked={defaultBoardSize === 8}
-          id="size-sm"
-          name="size"
-          type="radio"
-          value="8"
-        />
-        <label
-          className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 bg-gray-700 p-4 text-gray-300 hover:border-gray-200 hover:bg-gray-600"
-          htmlFor="size-sm"
-        >
-          <strong>Small</strong>
-          <span>8x8</span>
-        </label>
-        <input
-          className="hidden"
-          defaultChecked={defaultBoardSize === 16}
-          id="size-md"
-          name="size"
-          type="radio"
-          value="16"
-        />
-        <label
-          className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 bg-gray-700 p-4 text-gray-300 hover:border-gray-200 hover:bg-gray-600"
-          htmlFor="size-md"
-        >
-          <strong>Medium</strong>
-          <span>16x16</span>
-        </label>
-        <input
-          className="hidden"
-          defaultChecked={defaultBoardSize === 24}
-          id="size-lg"
-          name="size"
-          type="radio"
-          value="24"
-        />
-        <label
-          className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 bg-gray-700 p-4 text-gray-300 hover:border-gray-200 hover:bg-gray-600"
-          htmlFor="size-lg"
-        >
-          <strong>Large</strong>
-          <span>24x24</span>
-        </label>
-        <label className="sr-only" htmlFor="size-custom-input">
-          Custom board size
-        </label>
-        <input
-          className="hidden"
-          defaultChecked={![8, 16, 24].includes(defaultBoardSize)}
-          id="size-custom"
-          name="size"
-          type="radio"
-          value=""
-        />
-        <label
-          className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 bg-gray-700 p-4 text-gray-300 hover:border-gray-200 hover:bg-gray-600"
-          htmlFor="size-custom"
-        >
-          <strong>Custom</strong>
-          <input
-            className="rounded px-2 py-1 text-gray-900"
-            defaultValue={defaultBoardSize}
-            id="size-custom-input"
-            max={maxBoardSize}
-            min={minBoardSize}
-            name="customSize"
-            required
-            step={1}
-            type="number"
-          />
-        </label>
+      <div className="grid grid-cols-3 grid-rows-[1fr,min-content] gap-4">
+        {difficulties.map(({ id, mines, x, y }) => (
+          <Fragment key={id}>
+            <input
+              className="hidden"
+              defaultChecked={id === savedDifficulty}
+              id={`difficulty-${id}`}
+              name="difficulty"
+              type="radio"
+              value={id}
+            />
+            <label
+              className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 bg-gray-700 p-4 text-gray-300 hover:border-gray-200 hover:bg-gray-600"
+              htmlFor={`difficulty-${id}`}
+            >
+              <strong>{id}</strong>
+              <span>{`${x}x${y}`}</span>
+              <span>{`${mines} mines`}</span>
+            </label>
+          </Fragment>
+        ))}
         <button
-          className="col-span-2 row-start-3 rounded border border-gray-300 bg-gray-700 px-2 py-1 font-bold text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600 sm:col-span-4 sm:row-start-2"
+          className="col-span-3 row-start-2 rounded border border-gray-300 bg-gray-700 px-2 py-1 font-bold text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
           type="submit"
         >
           Play
