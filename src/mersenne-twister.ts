@@ -74,7 +74,7 @@ export class MersenneTwister {
   mt: number[];
   mti: number;
 
-  constructor(seed = new Date().getTime()) {
+  constructor(seed: number) {
     /* Period parameters */
 
     this.mt = new Array(this.N); /* the array for the state vector */

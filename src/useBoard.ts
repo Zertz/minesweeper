@@ -1,4 +1,5 @@
 import { useEffect, useReducer } from "react";
+import { addToLeaderboard } from "./addToLeaderboard";
 import { flagCell } from "./flagCell";
 import { getEmptyBoard } from "./getEmptyBoard";
 import { mineBoard } from "./mineBoard";
@@ -32,6 +33,7 @@ type State = {
   board: Cell[] | undefined;
   boardConfiguration: BoardConfiguration | undefined;
   revealedCells: number;
+  startDate: string | undefined;
   startTime: number | undefined;
   finishTime: number | undefined;
   state: "idle" | "in-progress" | "win" | "lose";
@@ -41,6 +43,7 @@ const initialState: State = {
   board: undefined,
   boardConfiguration: undefined,
   revealedCells: 0,
+  startDate: undefined,
   startTime: undefined,
   finishTime: undefined,
   state: "idle",
@@ -56,6 +59,7 @@ function reducer(state: State, action: Action): State {
         board: getEmptyBoard(action.payload.boardConfiguration),
         boardConfiguration: action.payload.boardConfiguration,
         revealedCells: 0,
+        startDate: new Date().toISOString(),
         startTime: undefined,
         finishTime: undefined,
         state: "in-progress",
@@ -70,6 +74,7 @@ function reducer(state: State, action: Action): State {
         board: flagCell(state.board, action.payload.id),
         boardConfiguration: state.boardConfiguration,
         revealedCells: state.revealedCells,
+        startDate: state.startDate,
         startTime: state.startTime || Date.now(),
         finishTime: undefined,
         state: "in-progress",
@@ -104,7 +109,7 @@ function reducer(state: State, action: Action): State {
 
       const didFinishGame = didLoseGame || didWinGame;
 
-      return {
+      const nextState: State = {
         board: didFinishGame
           ? board.map((cell) => ({
               ...cell,
@@ -118,10 +123,29 @@ function reducer(state: State, action: Action): State {
           : board,
         boardConfiguration: state.boardConfiguration,
         revealedCells: state.revealedCells + 1,
+        startDate: state.startDate,
         startTime: state.startTime || Date.now(),
         finishTime: didFinishGame ? Date.now() : undefined,
         state: didLoseGame ? "lose" : didWinGame ? "win" : "in-progress",
       };
+
+      if (
+        didWinGame &&
+        nextState.boardConfiguration &&
+        nextState.startDate &&
+        nextState.startTime &&
+        nextState.finishTime
+      ) {
+        addToLeaderboard({
+          boardConfiguration: nextState.boardConfiguration,
+          revealedCells: nextState.revealedCells,
+          startDate: nextState.startDate,
+          startTime: nextState.startTime,
+          finishTime: nextState.finishTime,
+        });
+      }
+
+      return nextState;
     }
   }
 }
@@ -135,7 +159,7 @@ export function useBoard() {
   ] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    if (!boardConfiguration?.seed || revealedCells > 0) {
+    if (boardConfiguration?.type !== "daily" || revealedCells > 0) {
       return;
     }
 
@@ -146,7 +170,7 @@ export function useBoard() {
     }
 
     dispatch({ type: "revealCell", payload: { id: initialCellId } });
-  }, [board, boardConfiguration?.seed, revealedCells]);
+  }, [board, boardConfiguration?.type, revealedCells]);
 
   return {
     board,

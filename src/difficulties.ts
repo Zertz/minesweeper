@@ -1,6 +1,6 @@
 import { BoardConfiguration } from "./types";
 
-export const difficulties: BoardConfiguration[] = [
+export const difficulties: Omit<BoardConfiguration, "seed" | "type">[] = [
   {
     id: "Beginner",
     mines: 10,

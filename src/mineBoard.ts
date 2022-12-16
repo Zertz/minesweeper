@@ -1,8 +1,8 @@
 import { MersenneTwister } from "./mersenne-twister";
 import { BoardConfiguration, Cell } from "./types";
 
-function shuffleArray<T>(array: T[], seed: number | undefined) {
-  const ms = seed ? new MersenneTwister(seed) : Math;
+function shuffleArray<T>(array: T[], seed: number) {
+  const ms = new MersenneTwister(seed);
 
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(ms.random() * (i + 1));

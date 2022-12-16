@@ -1,7 +1,8 @@
 export type BoardConfiguration = {
   id: "Beginner" | "Intermediate" | "Expert";
   mines: number;
-  seed?: number;
+  seed: number;
+  type: "daily" | "random";
   x: number;
   y: number;
 };

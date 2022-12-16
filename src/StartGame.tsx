@@ -4,6 +4,13 @@ import { getSavedDifficulty } from "./getSavedDifficulty";
 import { saveDifficulty } from "./saveDifficulty";
 import { UseBoard } from "./useBoard";
 
+function getRandomInt(min: number, max: number) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
 export function StartGame({
   startGame,
   state,
@@ -36,7 +43,11 @@ export function StartGame({
           return;
         }
 
-        startGame(boardConfiguration);
+        startGame({
+          ...boardConfiguration,
+          seed: Date.now() + getRandomInt(-1000, 1000),
+          type: "random",
+        });
 
         saveDifficulty(difficulty);
       }}
@@ -53,11 +64,12 @@ export function StartGame({
                 now.getFullYear(),
                 now.getMonth(),
                 now.getDate(),
-                now.getMonth(),
-                now.getDate(),
-                now.getDate(),
-                Math.round(now.getFullYear() / 10)
+                0,
+                0,
+                0,
+                0
               ).getTime(),
+              type: "daily",
             });
           }}
           type="button"
