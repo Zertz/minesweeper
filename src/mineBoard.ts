@@ -1,8 +1,11 @@
+import { MersenneTwister } from "./mersenne-twister";
 import { BoardConfiguration, Cell } from "./types";
 
-function shuffleArray<T>(array: T[]) {
+function shuffleArray<T>(array: T[], seed: number | undefined) {
+  const ms = seed ? new MersenneTwister(seed) : Math;
+
   for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(ms.random() * (i + 1));
 
     [array[i], array[j]] = [array[j], array[i]];
   }
@@ -22,7 +25,7 @@ export function mineBoard(
   // the upper rows. By shuffling the board with a good enough algorith, the right
   // number of mines can be distributed linearly and then the board can be sorted
   // back to it's original state.
-  return shuffleArray([...board])
+  return shuffleArray([...board], boardConfiguration.seed)
     .map<Cell>((cell) => {
       if (initialCellId === cell.id || mines === boardConfiguration.mines) {
         return {

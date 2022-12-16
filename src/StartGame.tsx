@@ -41,7 +41,29 @@ export function StartGame({
         saveDifficulty(difficulty);
       }}
     >
-      <div className="grid grid-cols-3 grid-rows-[1fr,min-content] gap-4">
+      <div className="grid grid-cols-3 grid-rows-[min-content,1fr,min-content] gap-4">
+        <button
+          className="col-span-3 rounded border border-gray-300 bg-gray-700 px-2 py-4 font-bold text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
+          onClick={() => {
+            const now = new Date();
+
+            startGame({
+              ...difficulties[1],
+              seed: new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate(),
+                now.getMonth(),
+                now.getDate(),
+                now.getDate(),
+                Math.round(now.getFullYear() / 10)
+              ).getTime(),
+            });
+          }}
+          type="button"
+        >
+          Daily challenge
+        </button>
         {difficulties.map(({ id, mines, x, y }) => (
           <Fragment key={id}>
             <input
@@ -63,7 +85,7 @@ export function StartGame({
           </Fragment>
         ))}
         <button
-          className="col-span-3 row-start-2 rounded border border-gray-300 bg-gray-700 px-2 py-1 font-bold text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
+          className="col-span-3 rounded border border-gray-300 bg-gray-700 px-2 py-1 font-bold text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
           type="submit"
         >
           Play

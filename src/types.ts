@@ -1,6 +1,7 @@
 export type BoardConfiguration = {
   id: "Beginner" | "Intermediate" | "Expert";
   mines: number;
+  seed?: number;
   x: number;
   y: number;
 };

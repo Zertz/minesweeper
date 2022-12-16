@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useEffect, useReducer } from "react";
 import { flagCell } from "./flagCell";
 import { getEmptyBoard } from "./getEmptyBoard";
 import { mineBoard } from "./mineBoard";
@@ -130,9 +130,23 @@ export type UseBoard = ReturnType<typeof useBoard>;
 
 export function useBoard() {
   const [
-    { board, boardConfiguration, startTime, finishTime, state },
+    { board, boardConfiguration, revealedCells, startTime, finishTime, state },
     dispatch,
   ] = useReducer(reducer, initialState);
+
+  useEffect(() => {
+    if (!boardConfiguration?.seed || revealedCells > 0) {
+      return;
+    }
+
+    const initialCellId = board?.at(0)?.id;
+
+    if (!initialCellId) {
+      return;
+    }
+
+    dispatch({ type: "revealCell", payload: { id: initialCellId } });
+  }, [board, boardConfiguration?.seed, revealedCells]);
 
   return {
     board,
