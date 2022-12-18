@@ -8,14 +8,6 @@ body,
   @apply min-h-screen;
 }
 
-input:invalid + button {
-  @apply pointer-events-none opacity-75;
-}
-
-input[type="radio"]:checked + label {
-  @apply bg-gray-300 text-gray-900;
-}
-
 .cell {
   @apply flex aspect-square w-8 items-center justify-center rounded border border-gray-300 text-gray-900 transition-colors;
 }
