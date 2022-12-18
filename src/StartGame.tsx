@@ -1,7 +1,4 @@
-import { Fragment } from "react";
 import { difficulties } from "./difficulties";
-import { getSavedDifficulty } from "./getSavedDifficulty";
-import { saveDifficulty } from "./saveDifficulty";
 import { UseBoard } from "./useBoard";
 
 function getRandomInt(min: number, max: number) {
@@ -11,98 +8,49 @@ function getRandomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-export function StartGame({
-  startGame,
-  state,
-}: Pick<UseBoard, "startGame" | "state">) {
-  const savedDifficulty = getSavedDifficulty();
-
+export function StartGame({ startGame }: Pick<UseBoard, "startGame">) {
   return (
-    <form
-      className={[
-        "absolute inset-4 flex flex-col items-center justify-center gap-4 bg-gray-900 text-gray-300",
-        state === "idle"
-          ? ""
-          : "pointer-events-none animate-fade-out opacity-0",
-      ].join(" ")}
-      onSubmit={(e) => {
-        e.preventDefault();
+    <div className="m-auto flex w-full max-w-xs flex-col gap-4 text-gray-300">
+      <button
+        className="mb-4 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 bg-gray-700 p-4 text-gray-300 hover:border-gray-200 hover:bg-gray-600"
+        onClick={() => {
+          const now = new Date();
 
-        const { difficulty } = Object.fromEntries(
-          Array.from(new FormData(e.currentTarget).entries()).map(([k, v]) => [
-            k,
-            v.toString(),
-          ])
-        );
-
-        const boardConfiguration = difficulties.find(
-          ({ id }) => id === difficulty
-        );
-
-        if (!boardConfiguration) {
-          return;
-        }
-
-        startGame({
-          ...boardConfiguration,
-          seed: Date.now() + getRandomInt(-1000, 1000),
-          type: "random",
-        });
-
-        saveDifficulty(difficulty);
-      }}
-    >
-      <div className="grid grid-cols-3 grid-rows-[min-content,1fr,min-content] gap-4">
+          startGame({
+            ...difficulties[1],
+            seed: new Date(
+              now.getFullYear(),
+              now.getMonth(),
+              now.getDate(),
+              0,
+              0,
+              0,
+              0
+            ).getTime(),
+            type: "daily",
+          });
+        }}
+        type="button"
+      >
+        <strong className="text-lg">Daily challenge</strong>
+      </button>
+      {difficulties.map((boardConfiguration) => (
         <button
-          className="col-span-3 rounded border border-gray-300 bg-gray-700 px-2 py-4 font-bold text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
+          key={boardConfiguration.id}
+          className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 bg-gray-700 p-4 text-gray-300 hover:border-gray-200 hover:bg-gray-600"
           onClick={() => {
-            const now = new Date();
-
             startGame({
-              ...difficulties[1],
-              seed: new Date(
-                now.getFullYear(),
-                now.getMonth(),
-                now.getDate(),
-                0,
-                0,
-                0,
-                0
-              ).getTime(),
-              type: "daily",
+              ...boardConfiguration,
+              seed: Date.now() + getRandomInt(-1000, 1000),
+              type: "random",
             });
           }}
           type="button"
         >
-          Daily challenge
+          <strong className="text-lg">{boardConfiguration.id}</strong>
+          <span className="text-sm">{`${boardConfiguration.x}x${boardConfiguration.y} · ${boardConfiguration.mines} mines`}</span>
         </button>
-        {difficulties.map(({ id, mines, x, y }) => (
-          <Fragment key={id}>
-            <input
-              className="hidden"
-              defaultChecked={id === savedDifficulty}
-              id={`difficulty-${id}`}
-              name="difficulty"
-              type="radio"
-              value={id}
-            />
-            <label
-              className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 bg-gray-700 p-4 text-gray-300 hover:border-gray-200 hover:bg-gray-600"
-              htmlFor={`difficulty-${id}`}
-            >
-              <strong>{id}</strong>
-              <span>{`${x}x${y}`}</span>
-              <span>{`${mines} mines`}</span>
-            </label>
-          </Fragment>
-        ))}
-        <button
-          className="col-span-3 rounded border border-gray-300 bg-gray-700 px-2 py-1 font-bold text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
-          type="submit"
-        >
-          Play
-        </button>
-      </div>
-    </form>
+      ))}
+    </div>
   );
 }
