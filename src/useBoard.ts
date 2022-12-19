@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from "react";
-import { addToLeaderboard } from "./addToLeaderboard";
 import { flagCell } from "./flagCell";
 import { getEmptyBoard } from "./getEmptyBoard";
+import { addToLeaderboard } from "./leaderboard";
 import { mineBoard } from "./mineBoard";
 import { revealCell } from "./revealCell";
 import { BoardConfiguration, Cell } from "./types";

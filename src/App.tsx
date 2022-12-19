@@ -1,13 +1,17 @@
 import { Board } from "./Board";
-import { StartGame } from "./StartGame";
+import { Home } from "./Home";
 import { useBoard } from "./useBoard";
 
 export function App() {
   const { startGame, ...rest } = useBoard();
 
-  return rest.state === "idle" ? (
-    <StartGame startGame={startGame} />
-  ) : (
-    <Board {...rest} />
+  if (rest.state !== "idle") {
+    return <Board {...rest} />;
+  }
+
+  return (
+    <div className="m-auto flex w-full max-w-xs flex-col gap-4">
+      <Home startGame={startGame} />
+    </div>
   );
 }

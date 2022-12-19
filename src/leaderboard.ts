@@ -41,8 +41,26 @@ export function addToLeaderboard(state: LeaderboardItem) {
         type !== state.boardConfiguration.type
       );
     })
-    .concat(state)
-    .sort((a, b) => a.startDate.localeCompare(b.startDate));
+    .concat(state);
 
   setLeaderboard(nextLeaderboard);
+}
+
+export function getFastestTimes(
+  difficulty: BoardConfiguration["id"],
+  limit = 3
+) {
+  const leaderboard = getLeaderboard();
+
+  return leaderboard
+    .filter(({ boardConfiguration }) => boardConfiguration.id === difficulty)
+    .map(({ startTime, finishTime }) => finishTime - startTime)
+    .sort((a, b) => a - b)
+    .filter((_, index) => index < limit)
+    .map((ms) => {
+      const m = `${Math.floor(ms / 1000 / 60)}`.padStart(2, "0");
+      const s = `${Math.floor(ms / 1000) % 60}`.padStart(2, "0");
+
+      return `${m}:${s}`;
+    });
 }

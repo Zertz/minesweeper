@@ -8,6 +8,10 @@ body,
   @apply min-h-screen;
 }
 
+[hidden] {
+  @apply hidden;
+}
+
 .cell {
   @apply flex aspect-square w-8 items-center justify-center rounded border border-gray-300 text-gray-900 transition-colors;
 }
