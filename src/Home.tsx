@@ -53,15 +53,24 @@ export function Home({ startGame }: Pick<UseBoard, "startGame">) {
               </strong>
               <span className="text-sm text-gray-400">{`${boardConfiguration.x}x${boardConfiguration.y} · ${boardConfiguration.mines} mines`}</span>
             </button>
-            <ol className="flex flex-col gap-1 text-gray-400">
+            <ol className="flex flex-col gap-1 font-mono text-gray-400">
               <li>
-                🥇 <span className="text-sm">{fastestTimes[0] || "--:--"}</span>
+                🥇
+                <span className="ml-1 text-sm">
+                  {fastestTimes[0] || "--:--"}
+                </span>
               </li>
               <li>
-                🥈 <span className="text-sm">{fastestTimes[1] || "--:--"}</span>
+                🥈
+                <span className="ml-1 text-sm">
+                  {fastestTimes[1] || "--:--"}
+                </span>
               </li>
               <li>
-                🥉 <span className="text-sm">{fastestTimes[2] || "--:--"}</span>
+                🥉
+                <span className="ml-1 text-sm">
+                  {fastestTimes[2] || "--:--"}
+                </span>
               </li>
             </ol>
           </div>
