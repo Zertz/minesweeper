@@ -33,17 +33,7 @@ function setLeaderboard(leaderboard: LeaderboardItem[]) {
 export function addToLeaderboard(state: LeaderboardItem) {
   const leaderboard = getLeaderboard();
 
-  const nextLeaderboard = leaderboard
-    .filter(({ boardConfiguration: { id, seed, type } }) => {
-      return (
-        id !== state.boardConfiguration.id &&
-        seed !== state.boardConfiguration.seed &&
-        type !== state.boardConfiguration.type
-      );
-    })
-    .concat(state);
-
-  setLeaderboard(nextLeaderboard);
+  setLeaderboard(leaderboard.concat(state));
 }
 
 export function getFastestTimes(
