@@ -109,7 +109,7 @@ function reducer(state: State, action: Action): State {
 
       const didFinishGame = didLoseGame || didWinGame;
 
-      const nextState: State = {
+      return {
         board: didFinishGame
           ? board.map((cell) => ({
               ...cell,
@@ -128,24 +128,6 @@ function reducer(state: State, action: Action): State {
         finishTime: didFinishGame ? Date.now() : undefined,
         state: didLoseGame ? "lose" : didWinGame ? "win" : "in-progress",
       };
-
-      if (
-        didWinGame &&
-        nextState.boardConfiguration &&
-        nextState.startDate &&
-        nextState.startTime &&
-        nextState.finishTime
-      ) {
-        addToLeaderboard({
-          boardConfiguration: nextState.boardConfiguration,
-          revealedCells: nextState.revealedCells,
-          startDate: nextState.startDate,
-          startTime: nextState.startTime,
-          finishTime: nextState.finishTime,
-        });
-      }
-
-      return nextState;
     }
   }
 }
@@ -154,7 +136,15 @@ export type UseBoard = ReturnType<typeof useBoard>;
 
 export function useBoard() {
   const [
-    { board, boardConfiguration, revealedCells, startTime, finishTime, state },
+    {
+      board,
+      boardConfiguration,
+      revealedCells,
+      startDate,
+      startTime,
+      finishTime,
+      state,
+    },
     dispatch,
   ] = useReducer(reducer, initialState);
 
@@ -171,6 +161,33 @@ export function useBoard() {
 
     dispatch({ type: "revealCell", payload: { id: initialCellId } });
   }, [board, boardConfiguration?.type, revealedCells]);
+
+  useEffect(() => {
+    if (
+      !boardConfiguration ||
+      !startDate ||
+      !startTime ||
+      !finishTime ||
+      state !== "win"
+    ) {
+      return;
+    }
+
+    addToLeaderboard({
+      boardConfiguration,
+      revealedCells,
+      startDate,
+      startTime,
+      finishTime,
+    });
+  }, [
+    boardConfiguration,
+    finishTime,
+    revealedCells,
+    startDate,
+    startTime,
+    state,
+  ]);
 
   return {
     board,
