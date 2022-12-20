@@ -67,7 +67,7 @@ export function Home({ startGame }: Pick<UseBoard, "startGame">) {
               </strong>
               <span className="text-sm text-gray-400">{`${boardConfiguration.x}x${boardConfiguration.y} · ${boardConfiguration.mines} mines`}</span>
             </button>
-            <ol className="flex gap-4 self-center font-mono text-gray-400">
+            <ol className="flex gap-4 self-center whitespace-nowrap font-mono text-gray-400">
               <li>
                 🥇
                 <span className="ml-0.5 text-sm">
