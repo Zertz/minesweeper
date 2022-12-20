@@ -37,7 +37,25 @@ export function addToLeaderboard(state: LeaderboardItem) {
   setLeaderboard(leaderboard.concat(state));
 }
 
-export function getFastestTimes(
+export function getFastestDailyChallengeTime() {
+  const leaderboard = getLeaderboard();
+
+  const fastestTimes = leaderboard
+    .filter(({ boardConfiguration, startDate }) => {
+      if (boardConfiguration.type !== "daily") {
+        return false;
+      }
+
+      return startDate.split("T")[0] === new Date().toISOString().split("T")[0];
+    })
+    .map(({ startTime, finishTime }) => finishTime - startTime)
+    .sort((a, b) => a - b)
+    .map((ms) => formatMilliseconds(ms));
+
+  return fastestTimes.at(0);
+}
+
+export function getFastestDifficultyTimes(
   difficulty: BoardConfiguration["id"],
   limit = 3
 ) {

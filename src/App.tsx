@@ -10,7 +10,7 @@ export function App() {
   }
 
   return (
-    <div className="m-auto flex w-full max-w-xs flex-col gap-4">
+    <div className="m-auto flex w-full max-w-xs flex-col gap-6">
       <Home startGame={startGame} />
     </div>
   );
