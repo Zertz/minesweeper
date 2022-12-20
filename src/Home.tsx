@@ -35,10 +35,10 @@ export function Home({ startGame }: Pick<UseBoard, "startGame">) {
         >
           <strong className="text-lg text-gray-300">Daily challenge</strong>
         </button>
-        <ol className="flex flex-col gap-1 self-center font-mono text-gray-400">
+        <ol className="self-center font-mono text-sm text-gray-400">
           <li>
             🏆
-            <span className="ml-0.5 text-sm">
+            <span className="ml-0.5">
               {fastestDailyChallengeTime || "--:--.---"}
             </span>
           </li>
@@ -67,22 +67,22 @@ export function Home({ startGame }: Pick<UseBoard, "startGame">) {
               </strong>
               <span className="text-sm text-gray-400">{`${boardConfiguration.x}x${boardConfiguration.y} · ${boardConfiguration.mines} mines`}</span>
             </button>
-            <ol className="flex gap-4 self-center whitespace-nowrap font-mono text-gray-400">
+            <ol className="flex gap-2 self-center whitespace-nowrap font-mono text-sm text-gray-400">
               <li>
                 🥇
-                <span className="ml-0.5 text-sm">
+                <span className="ml-0.5">
                   {fastestDifficultyTimes.at(0) || "--:--.---"}
                 </span>
               </li>
               <li>
                 🥈
-                <span className="ml-0.5 text-sm">
+                <span className="ml-0.5">
                   {fastestDifficultyTimes.at(1) || "--:--.---"}
                 </span>
               </li>
               <li>
                 🥉
-                <span className="ml-0.5 text-sm">
+                <span className="ml-0.5">
                   {fastestDifficultyTimes.at(2) || "--:--.---"}
                 </span>
               </li>
