@@ -57,19 +57,19 @@ export function Home({ startGame }: Pick<UseBoard, "startGame">) {
               <li>
                 🥇
                 <span className="ml-1 text-sm">
-                  {fastestTimes[0] || "--:--"}
+                  {fastestTimes[0] || "--:--.---"}
                 </span>
               </li>
               <li>
                 🥈
                 <span className="ml-1 text-sm">
-                  {fastestTimes[1] || "--:--"}
+                  {fastestTimes[1] || "--:--.---"}
                 </span>
               </li>
               <li>
                 🥉
                 <span className="ml-1 text-sm">
-                  {fastestTimes[2] || "--:--"}
+                  {fastestTimes[2] || "--:--.---"}
                 </span>
               </li>
             </ol>

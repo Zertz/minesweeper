@@ -1,3 +1,4 @@
+import { formatMilliseconds } from "./formatMilliseconds";
 import { BoardConfiguration } from "./types";
 
 type LeaderboardItem = {
@@ -46,11 +47,7 @@ export function getFastestTimes(
     .filter(({ boardConfiguration }) => boardConfiguration.id === difficulty)
     .map(({ startTime, finishTime }) => finishTime - startTime)
     .sort((a, b) => a - b)
+    .filter((ms) => ms < 1000 * 60 * 100)
     .filter((_, index) => index < limit)
-    .map((ms) => {
-      const m = `${Math.floor(ms / 1000 / 60)}`.padStart(2, "0");
-      const s = `${Math.floor(ms / 1000) % 60}`.padStart(2, "0");
-
-      return `${m}:${s}`;
-    });
+    .map((ms) => formatMilliseconds(ms));
 }

@@ -1,3 +1,4 @@
+import { formatMilliseconds } from "./formatMilliseconds";
 import { UseBoard } from "./useBoard";
 
 export function Board({
@@ -20,9 +21,9 @@ export function Board({
               ? "Awesome! You finished in"
               : "Oh no! You blew it in"}
           </span>
-          <span className="text-xl">{`${Math.round(
-            (finishTime - startTime) / 1000
-          )} seconds!`}</span>
+          <span className="text-xl">
+            {formatMilliseconds(finishTime - startTime)}
+          </span>
           <button
             className="mt-4 rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
             onClick={newGame}
