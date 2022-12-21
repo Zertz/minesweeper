@@ -1,9 +1,9 @@
 import { formatMilliseconds } from "./formatMilliseconds";
 import { BoardConfiguration } from "./types";
+import { State } from "./useBoard";
 
-type LeaderboardItem = {
+type LeaderboardItem = Pick<State, "actions" | "revealedCells"> & {
   boardConfiguration: BoardConfiguration;
-  revealedCells: number;
   startDate: string;
   startTime: number;
   finishTime: number;

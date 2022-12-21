@@ -29,7 +29,8 @@ type Action =
       };
     };
 
-type State = {
+export type State = {
+  actions: (Action & { elapsedTime: number })[];
   board: Cell[] | undefined;
   boardConfiguration: BoardConfiguration | undefined;
   revealedCells: number;
@@ -40,6 +41,7 @@ type State = {
 };
 
 const initialState: State = {
+  actions: [],
   board: undefined,
   boardConfiguration: undefined,
   revealedCells: 0,
@@ -56,6 +58,7 @@ function reducer(state: State, action: Action): State {
     }
     case "startGame": {
       return {
+        actions: [],
         board: getEmptyBoard(action.payload.boardConfiguration),
         boardConfiguration: action.payload.boardConfiguration,
         revealedCells: 0,
@@ -65,12 +68,23 @@ function reducer(state: State, action: Action): State {
         state: "in-progress",
       };
     }
+  }
+
+  const actions = ["flagCell", "revealCell"].includes(action.type)
+    ? state.actions.concat({
+        ...action,
+        elapsedTime: state.startTime ? Date.now() - state.startTime : 0,
+      })
+    : state.actions;
+
+  switch (action.type) {
     case "flagCell": {
       if (!state.board) {
         throw new Error("Game not started");
       }
 
       return {
+        actions,
         board: flagCell(state.board, action.payload.id),
         boardConfiguration: state.boardConfiguration,
         revealedCells: state.revealedCells,
@@ -110,6 +124,7 @@ function reducer(state: State, action: Action): State {
       const didFinishGame = didLoseGame || didWinGame;
 
       return {
+        actions,
         board: didFinishGame
           ? board.map((cell) => ({
               ...cell,
@@ -137,6 +152,7 @@ export type UseBoard = ReturnType<typeof useBoard>;
 export function useBoard() {
   const [
     {
+      actions,
       board,
       boardConfiguration,
       revealedCells,
@@ -174,6 +190,7 @@ export function useBoard() {
     }
 
     addToLeaderboard({
+      actions,
       boardConfiguration,
       revealedCells,
       startDate,
@@ -181,6 +198,7 @@ export function useBoard() {
       finishTime,
     });
   }, [
+    actions,
     boardConfiguration,
     finishTime,
     revealedCells,
