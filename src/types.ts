@@ -9,8 +9,8 @@ export type BoardConfiguration = {
 
 export type Cell = {
   id: string;
+  index: number;
   neighbors: string[];
-  order: number;
   state: "hidden" | "flag" | "visible";
   type: "mine" | "safe";
   value: number;

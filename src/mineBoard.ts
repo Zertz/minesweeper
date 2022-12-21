@@ -47,5 +47,5 @@ export function mineBoard(
         ({ id, type }) => type === "mine" && cell.neighbors.includes(id)
       ).length,
     }))
-    .sort((a, b) => a.order - b.order);
+    .sort((a, b) => a.index - b.index);
 }
