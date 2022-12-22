@@ -2,7 +2,7 @@ export type BoardConfiguration = {
   id: "Beginner" | "Intermediate" | "Expert";
   mines: number;
   seed: number;
-  type: "daily" | "random";
+  type: "daily" | "random" | "replay";
   x: number;
   y: number;
 };

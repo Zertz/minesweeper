@@ -8,7 +8,10 @@ import {
 } from "./leaderboard";
 import { UseBoard } from "./useBoard";
 
-export function Home({ startGame }: Pick<UseBoard, "startGame">) {
+export function Home({
+  startGame,
+  startReplay,
+}: Pick<UseBoard, "startGame" | "startReplay">) {
   const fastestDailyChallenge = getFastestDailyChallenge();
 
   return (
@@ -40,7 +43,7 @@ export function Home({ startGame }: Pick<UseBoard, "startGame">) {
         <ol className="self-center font-mono text-sm text-gray-400">
           <li>
             🏆
-            <Result game={fastestDailyChallenge} />
+            <Result game={fastestDailyChallenge} startReplay={startReplay} />
           </li>
         </ol>
       </div>
@@ -69,7 +72,10 @@ export function Home({ startGame }: Pick<UseBoard, "startGame">) {
               {["🥇", "🥈", "🥉"].map((medal, index) => (
                 <li key={medal}>
                   {medal}
-                  <Result game={fastestGames.at(index)} />
+                  <Result
+                    game={fastestGames.at(index)}
+                    startReplay={startReplay}
+                  />
                 </li>
               ))}
             </ol>
@@ -80,12 +86,20 @@ export function Home({ startGame }: Pick<UseBoard, "startGame">) {
   );
 }
 
-function Result({ game }: { game: LeaderboardItem | undefined }) {
+function Result({
+  game,
+  startReplay,
+}: { game: LeaderboardItem | undefined } & Pick<UseBoard, "startReplay">) {
+  if (!game) {
+    return <span className="ml-0.5">--:--.---</span>;
+  }
+
   return (
-    <span className="ml-0.5">
-      {game
-        ? formatMilliseconds(game.finishTime - game.startTime)
-        : "--:--.---"}
-    </span>
+    <button
+      className="ml-0.5 transition-colors hover:text-gray-300"
+      onClick={() => startReplay(game)}
+    >
+      {formatMilliseconds(game.finishTime - game.startTime)}
+    </button>
   );
 }

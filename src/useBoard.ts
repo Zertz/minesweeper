@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from "react";
 import { flagCell } from "./flagCell";
 import { getEmptyBoard } from "./getEmptyBoard";
-import { addToLeaderboard } from "./leaderboard";
+import { addToLeaderboard, LeaderboardItem } from "./leaderboard";
 import { mineBoard } from "./mineBoard";
 import { revealCell } from "./revealCell";
 import { BoardConfiguration, Cell } from "./types";
@@ -18,6 +18,7 @@ type BoardAction =
     }
   | {
       type: "startReplay";
+      payload?: LeaderboardItem;
     }
   | {
       type: "finishReplay";
@@ -77,6 +78,34 @@ function reducer(state: State, action: BoardAction | PlayerAction): State {
       };
     }
     case "startReplay": {
+      if (action.payload) {
+        const initialCellId = action.payload.actions.find(
+          (action) => action.type === "revealCell"
+        )?.payload.id;
+
+        if (!initialCellId) {
+          throw new Error("Can't replay without at least one revealed cell");
+        }
+
+        return {
+          actions: action.payload.actions,
+          board: mineBoard(
+            action.payload.boardConfiguration,
+            getEmptyBoard(action.payload.boardConfiguration),
+            initialCellId
+          ),
+          boardConfiguration: {
+            ...action.payload.boardConfiguration,
+            type: "replay",
+          },
+          replayActionIndex: 0,
+          startDate: action.payload.startDate,
+          startTime: action.payload.startTime,
+          finishTime: action.payload.finishTime,
+          state: "win",
+        };
+      }
+
       return {
         actions: state.actions,
         board: state.board?.map((cell) => ({
@@ -94,19 +123,7 @@ function reducer(state: State, action: BoardAction | PlayerAction): State {
     case "finishReplay": {
       return {
         actions: state.actions,
-        board: state.board?.map((cell) => {
-          const action = state.actions.find((action) => action.payload.id);
-
-          return {
-            ...cell,
-            state:
-              action?.type === "flagCell"
-                ? "flag"
-                : action?.type === "revealCell"
-                ? "visible"
-                : "hidden",
-          };
-        }),
+        board: state.board,
         boardConfiguration: state.boardConfiguration,
         replayActionIndex: undefined,
         startDate: state.startDate,
@@ -282,6 +299,7 @@ export function useBoard() {
       !startDate ||
       !startTime ||
       !finishTime ||
+      boardConfiguration.type === "replay" ||
       state !== "win"
     ) {
       return;
@@ -351,8 +369,8 @@ export function useBoard() {
     revealCell(id: string) {
       dispatch({ type: "revealCell", payload: { id } });
     },
-    startReplay() {
-      dispatch({ type: "startReplay" });
+    startReplay(leaderboardItem?: LeaderboardItem) {
+      dispatch({ type: "startReplay", payload: leaderboardItem });
     },
   };
 }
