@@ -2,7 +2,7 @@ import { formatMilliseconds } from "./formatMilliseconds";
 import { BoardConfiguration } from "./types";
 import { State } from "./useBoard";
 
-type LeaderboardItem = Pick<State, "actions" | "revealedCells"> & {
+type LeaderboardItem = Pick<State, "actions"> & {
   boardConfiguration: BoardConfiguration;
   startDate: string;
   startTime: number;

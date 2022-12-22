@@ -6,7 +6,7 @@ import { mineBoard } from "./mineBoard";
 import { revealCell } from "./revealCell";
 import { BoardConfiguration, Cell } from "./types";
 
-type Action =
+type BoardAction =
   | {
       type: "newGame";
     }
@@ -16,6 +16,14 @@ type Action =
         boardConfiguration: BoardConfiguration;
       };
     }
+  | {
+      type: "startReplay";
+    }
+  | {
+      type: "finishReplay";
+    };
+
+type PlayerAction =
   | {
       type: "revealCell";
       payload: {
@@ -30,10 +38,10 @@ type Action =
     };
 
 export type State = {
-  actions: (Action & { elapsedTime: number })[];
+  actions: (PlayerAction & { elapsedTime: number })[];
   board: Cell[] | undefined;
   boardConfiguration: BoardConfiguration | undefined;
-  revealedCells: number;
+  replayActionIndex: number | undefined;
   startDate: string | undefined;
   startTime: number | undefined;
   finishTime: number | undefined;
@@ -44,14 +52,14 @@ const initialState: State = {
   actions: [],
   board: undefined,
   boardConfiguration: undefined,
-  revealedCells: 0,
+  replayActionIndex: undefined,
   startDate: undefined,
   startTime: undefined,
   finishTime: undefined,
   state: "idle",
 };
 
-function reducer(state: State, action: Action): State {
+function reducer(state: State, action: BoardAction | PlayerAction): State {
   switch (action.type) {
     case "newGame": {
       return initialState;
@@ -61,21 +69,113 @@ function reducer(state: State, action: Action): State {
         actions: [],
         board: getEmptyBoard(action.payload.boardConfiguration),
         boardConfiguration: action.payload.boardConfiguration,
-        revealedCells: 0,
+        replayActionIndex: undefined,
         startDate: new Date().toISOString(),
         startTime: undefined,
         finishTime: undefined,
         state: "in-progress",
       };
     }
+    case "startReplay": {
+      return {
+        actions: state.actions,
+        board: state.board?.map((cell) => ({
+          ...cell,
+          state: "hidden",
+        })),
+        boardConfiguration: state.boardConfiguration,
+        replayActionIndex: 0,
+        startDate: state.startDate,
+        startTime: state.startTime,
+        finishTime: state.finishTime,
+        state: state.state,
+      };
+    }
+    case "finishReplay": {
+      return {
+        actions: state.actions,
+        board: state.board?.map((cell) => {
+          const action = state.actions.find((action) => action.payload.id);
+
+          return {
+            ...cell,
+            state:
+              action?.type === "flagCell"
+                ? "flag"
+                : action?.type === "revealCell"
+                ? "visible"
+                : "hidden",
+          };
+        }),
+        boardConfiguration: state.boardConfiguration,
+        replayActionIndex: undefined,
+        startDate: state.startDate,
+        startTime: state.startTime,
+        finishTime: state.finishTime,
+        state: state.state,
+      };
+    }
   }
 
-  const actions = ["flagCell", "revealCell"].includes(action.type)
-    ? state.actions.concat({
-        ...action,
-        elapsedTime: state.startTime ? Date.now() - state.startTime : 0,
-      })
-    : state.actions;
+  if (typeof state.replayActionIndex === "number") {
+    switch (action.type) {
+      case "flagCell": {
+        if (!state.board) {
+          throw new Error("Game not started");
+        }
+
+        return {
+          actions: state.actions,
+          board: flagCell(state.board, action.payload.id),
+          boardConfiguration: state.boardConfiguration,
+          replayActionIndex: state.replayActionIndex + 1,
+          startDate: state.startDate,
+          startTime: state.startTime,
+          finishTime: state.finishTime,
+          state: state.state,
+        };
+      }
+      case "revealCell": {
+        if (!state.board || !state.boardConfiguration) {
+          throw new Error("Game not started");
+        }
+
+        const board = state.actions.some(({ type }) => type === "revealCell")
+          ? revealCell(state.board, action.payload.id)
+          : revealCell(
+              mineBoard(
+                state.boardConfiguration,
+                state.board,
+                action.payload.id
+              ),
+              action.payload.id
+            );
+
+        return {
+          actions: state.actions,
+          board,
+          boardConfiguration: state.boardConfiguration,
+          replayActionIndex: state.replayActionIndex + 1,
+          startDate: state.startDate,
+          startTime: state.startTime,
+          finishTime: state.finishTime,
+          state: state.state,
+        };
+      }
+    }
+  }
+
+  const elapsedTime = state.actions.reduce(
+    (acc, { elapsedTime }) => acc + elapsedTime,
+    0
+  );
+
+  const actions = state.actions.concat({
+    ...action,
+    elapsedTime: state.startTime
+      ? Date.now() - state.startTime - elapsedTime
+      : 0,
+  });
 
   switch (action.type) {
     case "flagCell": {
@@ -87,7 +187,7 @@ function reducer(state: State, action: Action): State {
         actions,
         board: flagCell(state.board, action.payload.id),
         boardConfiguration: state.boardConfiguration,
-        revealedCells: state.revealedCells,
+        replayActionIndex: undefined,
         startDate: state.startDate,
         startTime: state.startTime || Date.now(),
         finishTime: undefined,
@@ -99,17 +199,12 @@ function reducer(state: State, action: Action): State {
         throw new Error("Game not started");
       }
 
-      const board =
-        state.revealedCells === 0
-          ? revealCell(
-              mineBoard(
-                state.boardConfiguration,
-                state.board,
-                action.payload.id
-              ),
-              action.payload.id
-            )
-          : revealCell(state.board, action.payload.id);
+      const board = state.actions.some(({ type }) => type === "revealCell")
+        ? revealCell(state.board, action.payload.id)
+        : revealCell(
+            mineBoard(state.boardConfiguration, state.board, action.payload.id),
+            action.payload.id
+          );
 
       const didLoseGame = board.some(
         (cell) => cell.state === "visible" && cell.type === "mine"
@@ -137,7 +232,7 @@ function reducer(state: State, action: Action): State {
             }))
           : board,
         boardConfiguration: state.boardConfiguration,
-        revealedCells: state.revealedCells + 1,
+        replayActionIndex: undefined,
         startDate: state.startDate,
         startTime: state.startTime || Date.now(),
         finishTime: didFinishGame ? Date.now() : undefined,
@@ -155,7 +250,7 @@ export function useBoard() {
       actions,
       board,
       boardConfiguration,
-      revealedCells,
+      replayActionIndex,
       startDate,
       startTime,
       finishTime,
@@ -165,7 +260,10 @@ export function useBoard() {
   ] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    if (boardConfiguration?.type !== "daily" || revealedCells > 0) {
+    if (
+      boardConfiguration?.type !== "daily" ||
+      actions.filter(({ type }) => type === "revealCell").length > 0
+    ) {
       return;
     }
 
@@ -176,7 +274,7 @@ export function useBoard() {
     }
 
     dispatch({ type: "revealCell", payload: { id: initialCellId } });
-  }, [board, boardConfiguration?.type, revealedCells]);
+  }, [actions, board, boardConfiguration?.type]);
 
   useEffect(() => {
     if (
@@ -192,24 +290,49 @@ export function useBoard() {
     addToLeaderboard({
       actions,
       boardConfiguration,
-      revealedCells,
       startDate,
       startTime,
       finishTime,
     });
-  }, [
-    actions,
-    boardConfiguration,
-    finishTime,
-    revealedCells,
-    startDate,
-    startTime,
-    state,
-  ]);
+  }, [actions, boardConfiguration, finishTime, startDate, startTime, state]);
+
+  useEffect(() => {
+    if (typeof replayActionIndex !== "number") {
+      return;
+    }
+
+    const action = actions.at(replayActionIndex);
+
+    if (!action) {
+      dispatch({ type: "finishReplay" });
+
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      switch (action.type) {
+        case "flagCell": {
+          dispatch({ type: "flagCell", payload: { id: action.payload.id } });
+
+          break;
+        }
+        case "revealCell": {
+          dispatch({ type: "revealCell", payload: { id: action.payload.id } });
+
+          break;
+        }
+      }
+    }, action.elapsedTime);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [actions, replayActionIndex]);
 
   return {
     board,
     boardConfiguration,
+    mode: typeof replayActionIndex === "number" ? "replay" : "play",
     startTime,
     finishTime,
     state,
@@ -227,6 +350,9 @@ export function useBoard() {
     },
     revealCell(id: string) {
       dispatch({ type: "revealCell", payload: { id } });
+    },
+    startReplay() {
+      dispatch({ type: "startReplay" });
     },
   };
 }

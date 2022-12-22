@@ -4,16 +4,18 @@ import { UseBoard } from "./useBoard";
 export function Board({
   board,
   boardConfiguration,
+  mode,
   startTime,
   finishTime,
   state,
   newGame,
+  startReplay,
   flagCell,
   revealCell,
 }: Omit<UseBoard, "startGame">) {
   return (
     <>
-      {startTime && finishTime && (
+      {mode === "play" && startTime && finishTime && (
         <div className="absolute inset-0 flex scale-150 flex-col items-center justify-center bg-gray-700/75 text-gray-300">
           <span className="mb-4 text-7xl">{state === "win" ? "🎉" : "💥"}</span>
           <span className="text-xl">
@@ -31,10 +33,21 @@ export function Board({
           >
             New game
           </button>
+          <button
+            className="mt-4 rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
+            onClick={startReplay}
+            type="button"
+          >
+            Replay game
+          </button>
         </div>
       )}
-      <div
-        className="m-auto grid w-min select-none gap-1 px-4 text-center"
+      <fieldset
+        className={[
+          "m-auto grid w-min select-none gap-1 px-4 text-center",
+          mode === "replay" && "pointer-events-none",
+        ].join(" ")}
+        disabled={mode === "replay"}
         style={{
           gridTemplateRows: `repeat(${boardConfiguration?.y}, 1fr)`,
           gridTemplateColumns: `repeat(${boardConfiguration?.x}, 1fr)`,
@@ -76,11 +89,11 @@ export function Board({
               : value || null}
           </button>
         ))}
-      </div>
+      </fieldset>
       <div className="sticky left-1/2 flex -translate-x-1/2 gap-4 self-center">
         <button
           className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
-          hidden={!!finishTime}
+          hidden={mode === "play" && state !== "in-progress"}
           onClick={newGame}
           type="button"
         >
