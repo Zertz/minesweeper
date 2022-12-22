@@ -1,13 +1,15 @@
 import { difficulties } from "./difficulties";
+import { formatMilliseconds } from "./formatMilliseconds";
 import { getRandomInt } from "./getRandomInt";
 import {
-  getFastestDailyChallengeTime,
-  getFastestDifficultyTimes,
+  getFastestDailyChallenge,
+  getFastestGames,
+  LeaderboardItem,
 } from "./leaderboard";
 import { UseBoard } from "./useBoard";
 
 export function Home({ startGame }: Pick<UseBoard, "startGame">) {
-  const fastestDailyChallengeTime = getFastestDailyChallengeTime();
+  const fastestDailyChallenge = getFastestDailyChallenge();
 
   return (
     <>
@@ -38,16 +40,12 @@ export function Home({ startGame }: Pick<UseBoard, "startGame">) {
         <ol className="self-center font-mono text-sm text-gray-400">
           <li>
             🏆
-            <span className="ml-0.5">
-              {fastestDailyChallengeTime || "--:--.---"}
-            </span>
+            <Result game={fastestDailyChallenge} />
           </li>
         </ol>
       </div>
       {difficulties.map((boardConfiguration) => {
-        const fastestDifficultyTimes = getFastestDifficultyTimes(
-          boardConfiguration.id
-        );
+        const fastestGames = getFastestGames(boardConfiguration.id);
 
         return (
           <div key={boardConfiguration.id} className="flex flex-col gap-1">
@@ -68,28 +66,26 @@ export function Home({ startGame }: Pick<UseBoard, "startGame">) {
               <span className="text-sm text-gray-400">{`${boardConfiguration.x}x${boardConfiguration.y} · ${boardConfiguration.mines} mines`}</span>
             </button>
             <ol className="flex gap-2 self-center whitespace-nowrap font-mono text-sm text-gray-400">
-              <li>
-                🥇
-                <span className="ml-0.5">
-                  {fastestDifficultyTimes.at(0) || "--:--.---"}
-                </span>
-              </li>
-              <li>
-                🥈
-                <span className="ml-0.5">
-                  {fastestDifficultyTimes.at(1) || "--:--.---"}
-                </span>
-              </li>
-              <li>
-                🥉
-                <span className="ml-0.5">
-                  {fastestDifficultyTimes.at(2) || "--:--.---"}
-                </span>
-              </li>
+              {["🥇", "🥈", "🥉"].map((medal, index) => (
+                <li key={medal}>
+                  {medal}
+                  <Result game={fastestGames.at(index)} />
+                </li>
+              ))}
             </ol>
           </div>
         );
       })}
     </>
+  );
+}
+
+function Result({ game }: { game: LeaderboardItem | undefined }) {
+  return (
+    <span className="ml-0.5">
+      {game
+        ? formatMilliseconds(game.finishTime - game.startTime)
+        : "--:--.---"}
+    </span>
   );
 }

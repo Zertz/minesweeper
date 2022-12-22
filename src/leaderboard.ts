@@ -1,8 +1,7 @@
-import { formatMilliseconds } from "./formatMilliseconds";
 import { BoardConfiguration } from "./types";
 import { State } from "./useBoard";
 
-type LeaderboardItem = Pick<State, "actions"> & {
+export type LeaderboardItem = Pick<State, "actions"> & {
   boardConfiguration: BoardConfiguration;
   startDate: string;
   startTime: number;
@@ -37,7 +36,7 @@ export function addToLeaderboard(state: LeaderboardItem) {
   setLeaderboard(leaderboard.concat(state));
 }
 
-export function getFastestDailyChallengeTime() {
+export function getFastestDailyChallenge() {
   const leaderboard = getLeaderboard();
 
   const fastestTimes = leaderboard
@@ -48,24 +47,25 @@ export function getFastestDailyChallengeTime() {
 
       return startDate.split("T")[0] === new Date().toISOString().split("T")[0];
     })
-    .map(({ startTime, finishTime }) => finishTime - startTime)
-    .sort((a, b) => a - b)
-    .map((ms) => formatMilliseconds(ms));
+    .sort((a, b) => a.finishTime - a.startTime - (b.finishTime - b.startTime));
 
   return fastestTimes.at(0);
 }
 
-export function getFastestDifficultyTimes(
+export function getFastestGames(
   difficulty: BoardConfiguration["id"],
   limit = 3
 ) {
   const leaderboard = getLeaderboard();
 
   return leaderboard
-    .filter(({ boardConfiguration }) => boardConfiguration.id === difficulty)
-    .map(({ startTime, finishTime }) => finishTime - startTime)
-    .sort((a, b) => a - b)
-    .filter((ms) => ms < 1000 * 60 * 100)
-    .filter((_, index) => index < limit)
-    .map((ms) => formatMilliseconds(ms));
+    .filter(({ boardConfiguration, startTime, finishTime }) => {
+      if (boardConfiguration.id !== difficulty) {
+        return false;
+      }
+
+      return finishTime - startTime < 1000 * 60 * 100;
+    })
+    .sort((a, b) => a.finishTime - a.startTime - (b.finishTime - b.startTime))
+    .filter((_, index) => index < limit);
 }
