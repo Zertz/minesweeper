@@ -51,10 +51,16 @@ export function Play({
                 return;
               }
 
-              navigator.clipboard
-                .writeText(shareUrl)
-                .then(console.info)
-                .catch(console.error);
+              if (navigator.share) {
+                navigator.share({
+                  url: shareUrl,
+                });
+              } else {
+                navigator.clipboard
+                  .writeText(shareUrl)
+                  .then(console.info)
+                  .catch(console.error);
+              }
             }}
             type="button"
           >
