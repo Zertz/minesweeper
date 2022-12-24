@@ -15,8 +15,8 @@ export function Home({
   const fastestDailyChallenge = getFastestDailyChallenge();
 
   return (
-    <>
-      <div className="flex flex-col gap-1">
+    <div className="m-auto flex w-full max-w-xs flex-col gap-8 p-4">
+      <div className="flex flex-col gap-2">
         <button
           className="flex flex-grow cursor-pointer flex-col items-center justify-center rounded-lg border-2 bg-gray-700 p-4 hover:border-gray-200 hover:bg-gray-600"
           onClick={() => {
@@ -24,6 +24,7 @@ export function Home({
 
             startGame({
               ...difficulties[1],
+              id: crypto.randomUUID(),
               seed: new Date(
                 now.getFullYear(),
                 now.getMonth(),
@@ -48,15 +49,19 @@ export function Home({
         </ol>
       </div>
       {difficulties.map((boardConfiguration) => {
-        const fastestGames = getFastestGames(boardConfiguration.id);
+        const fastestGames = getFastestGames(boardConfiguration.difficulty);
 
         return (
-          <div key={boardConfiguration.id} className="flex flex-col gap-1">
+          <div
+            key={boardConfiguration.difficulty}
+            className="flex flex-col gap-2"
+          >
             <button
               className="flex flex-grow cursor-pointer flex-col items-center justify-center rounded-lg border-2 bg-gray-700 p-4 hover:border-gray-200 hover:bg-gray-600"
               onClick={() => {
                 startGame({
                   ...boardConfiguration,
+                  id: crypto.randomUUID(),
                   seed: Date.now() + getRandomInt(-1000, 1000),
                   type: "random",
                 });
@@ -64,7 +69,7 @@ export function Home({
               type="button"
             >
               <strong className="text-lg text-gray-300">
-                {boardConfiguration.id}
+                {boardConfiguration.difficulty}
               </strong>
               <span className="text-sm text-gray-400">{`${boardConfiguration.x}x${boardConfiguration.y} · ${boardConfiguration.mines} mines`}</span>
             </button>
@@ -82,7 +87,7 @@ export function Home({
           </div>
         );
       })}
-    </>
+    </div>
   );
 }
 

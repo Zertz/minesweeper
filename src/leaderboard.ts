@@ -1,4 +1,5 @@
-import { BoardConfiguration } from "./types";
+import { z } from "zod";
+import { BoardConfiguration, StoredGameResult } from "./types";
 import { State } from "./useBoard";
 
 export type LeaderboardItem = Pick<State, "actions"> & {
@@ -16,15 +17,29 @@ function getLeaderboard(): LeaderboardItem[] {
       return [];
     }
 
-    return JSON.parse(leaderboard);
-  } catch {
+    return z.array(StoredGameResult).parse(JSON.parse(leaderboard));
+  } catch (e) {
+    console.error(e);
+
     return [];
   }
 }
 
 function setLeaderboard(leaderboard: LeaderboardItem[]) {
   try {
-    localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+    localStorage.setItem(
+      "leaderboard",
+      JSON.stringify(
+        leaderboard.map(({ actions, ...rest }) => ({
+          actions: actions
+            .map(({ type, payload, elapsedTime }) => {
+              return `${type.substring(0, 1)}-${payload.id}-${elapsedTime}`;
+            })
+            .join("_"),
+          ...rest,
+        }))
+      )
+    );
   } catch {
     // Some browsers throw in private mode
   }
@@ -32,6 +47,14 @@ function setLeaderboard(leaderboard: LeaderboardItem[]) {
 
 export function addToLeaderboard(state: LeaderboardItem) {
   const leaderboard = getLeaderboard();
+
+  if (
+    leaderboard.some(({ boardConfiguration }) => {
+      return boardConfiguration.id === state.boardConfiguration.id;
+    })
+  ) {
+    return;
+  }
 
   setLeaderboard(leaderboard.concat(state));
 }
@@ -53,14 +76,14 @@ export function getFastestDailyChallenge() {
 }
 
 export function getFastestGames(
-  difficulty: BoardConfiguration["id"],
+  difficulty: BoardConfiguration["difficulty"],
   limit = 3
 ) {
   const leaderboard = getLeaderboard();
 
   return leaderboard
     .filter(({ boardConfiguration, startTime, finishTime }) => {
-      if (boardConfiguration.id !== difficulty) {
+      if (boardConfiguration.difficulty !== difficulty) {
         return false;
       }
 
@@ -68,4 +91,20 @@ export function getFastestGames(
     })
     .sort((a, b) => a.finishTime - a.startTime - (b.finishTime - b.startTime))
     .filter((_, index) => index < limit);
+}
+
+export function getShareURL(id: BoardConfiguration["id"]) {
+  const leaderboard = getLeaderboard();
+
+  const game = leaderboard.find(
+    ({ boardConfiguration }) => boardConfiguration.id === id
+  );
+
+  if (!game) {
+    return;
+  }
+
+  return `${window.location.origin}?game=${encodeURIComponent(
+    JSON.stringify(game)
+  )}`;
 }

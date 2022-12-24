@@ -8,7 +8,7 @@ export function getEmptyBoard(boardConfiguration: BoardConfiguration): Cell[] {
     const y = Math.floor(i / boardConfiguration.x);
 
     return {
-      id: `${x},${y}`,
+      id: `${x}.${y}`,
       index: i,
       neighbors: [
         [-1, -1],
@@ -22,7 +22,7 @@ export function getEmptyBoard(boardConfiguration: BoardConfiguration): Cell[] {
       ]
         .map(([nx, ny]) => [x + nx, y + ny])
         .filter(([nx, ny]) => nx >= 0 && ny >= 0)
-        .map(([nx, ny]) => `${nx},${ny}`),
+        .map(([nx, ny]) => `${nx}.${ny}`),
       state: "hidden",
       type: "safe",
       value: 0,

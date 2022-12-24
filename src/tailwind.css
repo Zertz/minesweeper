@@ -8,6 +8,10 @@ body,
   @apply min-h-screen overscroll-none;
 }
 
+[disabled] {
+  @apply pointer-events-none;
+}
+
 [hidden] {
   @apply hidden;
 }

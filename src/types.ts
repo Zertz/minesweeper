@@ -1,11 +1,47 @@
-export type BoardConfiguration = {
-  id: "Beginner" | "Intermediate" | "Expert";
-  mines: number;
-  seed: number;
-  type: "daily" | "random" | "replay";
-  x: number;
-  y: number;
-};
+import { z } from "zod";
+
+const BoardConfigurationSchema = z.object({
+  id: z.string(),
+  difficulty: z.enum(["Beginner", "Intermediate", "Expert"]),
+  mines: z.number(),
+  seed: z.number(),
+  type: z.enum(["daily", "random", "replay"]),
+  x: z.number(),
+  y: z.number(),
+});
+
+export type BoardConfiguration = z.infer<typeof BoardConfigurationSchema>;
+
+export const StoredGameResult = z.object({
+  actions: z.preprocess(
+    (actions) => {
+      if (typeof actions !== "string") {
+        return actions;
+      }
+
+      return actions.split("_").map((action) => {
+        const [type, id, elapsedTime] = action.split("-");
+
+        return {
+          type: type === "f" ? "flagCell" : type === "r" ? "revealCell" : null,
+          payload: { id },
+          elapsedTime: Number(elapsedTime),
+        };
+      });
+    },
+    z.array(
+      z.object({
+        type: z.enum(["flagCell", "revealCell"]),
+        payload: z.object({ id: z.string() }),
+        elapsedTime: z.number().min(0),
+      })
+    )
+  ),
+  boardConfiguration: BoardConfigurationSchema,
+  startDate: z.string(),
+  startTime: z.number(),
+  finishTime: z.number(),
+});
 
 export type Cell = {
   id: string;

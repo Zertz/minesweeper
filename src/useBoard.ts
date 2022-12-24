@@ -350,7 +350,6 @@ export function useBoard() {
   return {
     board,
     boardConfiguration,
-    mode: typeof replayActionIndex === "number" ? "replay" : "play",
     startTime,
     finishTime,
     state,
