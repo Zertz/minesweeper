@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { BoardConfiguration, StoredGameResult } from "./types";
 import { State } from "./useBoard";
 
@@ -9,20 +8,46 @@ export type LeaderboardItem = Pick<State, "actions"> & {
   finishTime: number;
 };
 
+function isDefined<T>(argument: T | undefined): argument is T {
+  return argument !== undefined;
+}
+
 function getLeaderboard(): LeaderboardItem[] {
   try {
-    const leaderboard = localStorage.getItem("leaderboard");
+    const storedLeaderboard = localStorage.getItem("leaderboard");
 
-    if (!leaderboard) {
+    if (!storedLeaderboard) {
       return [];
     }
 
-    return z.array(StoredGameResult).parse(JSON.parse(leaderboard));
+    const leaderboard = JSON.parse(storedLeaderboard);
+
+    if (!Array.isArray(leaderboard)) {
+      return [];
+    }
+
+    return leaderboard
+      .map((item) => {
+        try {
+          return StoredGameResult.parse(item);
+        } catch {
+          // 🤷‍♂️
+        }
+      })
+      .filter(isDefined);
   } catch (e) {
     console.error(e);
 
     return [];
   }
+}
+
+function encodeActions(actions: LeaderboardItem["actions"]) {
+  return actions
+    .map(({ type, payload, elapsedTime }) => {
+      return `${type.substring(0, 1)}-${payload.id}-${elapsedTime}`;
+    })
+    .join("_");
 }
 
 function setLeaderboard(leaderboard: LeaderboardItem[]) {
@@ -104,7 +129,9 @@ export function getShareURL(id: BoardConfiguration["id"]) {
     return;
   }
 
+  const { actions, ...rest } = game;
+
   return `${window.location.origin}?game=${encodeURIComponent(
-    JSON.stringify(game)
+    JSON.stringify({ actions: encodeActions(actions), ...rest })
   )}`;
 }
