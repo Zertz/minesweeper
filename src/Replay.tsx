@@ -54,7 +54,7 @@ export function Replay({
   }, []);
 
   useEffect(() => {
-    if (board?.some(({ state }) => state !== "hidden")) {
+    if (!board?.every(({ state }) => state === "hidden")) {
       return;
     }
 
