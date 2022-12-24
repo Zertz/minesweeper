@@ -73,7 +73,7 @@ export function Replay({
   return (
     <>
       <div className="flex justify-between gap-4 p-4 pb-2">
-        <BackToMainMenu newGame={newGame} />
+        <BackToMainMenu hideLabel newGame={newGame} />
         <div className="flex flex-grow items-center">
           <span className="h-3 w-3 rounded-full bg-gray-300" />
           <span className="relative h-1 w-full bg-gray-500">
@@ -101,7 +101,7 @@ export function Replay({
           title="Restart replay"
           type="button"
         >
-          &#8635;
+          &#8634;
         </button>
       </div>
       <Board

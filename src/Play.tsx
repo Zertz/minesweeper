@@ -29,7 +29,7 @@ export function Play({
   return (
     <>
       <div className="flex gap-4 p-4 pb-2" hidden={state !== "in-progress"}>
-        <BackToMainMenu newGame={newGame} />
+        <BackToMainMenu hideLabel newGame={newGame} />
       </div>
       {boardConfiguration && startTime && finishTime && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-700/75 text-gray-300">
