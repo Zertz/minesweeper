@@ -1,3 +1,4 @@
+import { BackToMainMenu } from "./BackToMainMenu";
 import { Board } from "./Board";
 import { formatMilliseconds } from "./formatMilliseconds";
 import { getShareURL } from "./leaderboard";
@@ -28,13 +29,7 @@ export function Play({
   return (
     <>
       <div className="flex gap-4 p-4 pb-2" hidden={state !== "in-progress"}>
-        <button
-          className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
-          onClick={newGame}
-          type="button"
-        >
-          &larr; Back to main menu
-        </button>
+        <BackToMainMenu newGame={newGame} />
       </div>
       {boardConfiguration && startTime && finishTime && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-700/75 text-gray-300">
@@ -73,13 +68,7 @@ export function Play({
           >
             &#8635; Try again
           </button>
-          <button
-            className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
-            onClick={newGame}
-            type="button"
-          >
-            &larr; Back to main menu
-          </button>
+          <BackToMainMenu newGame={newGame} />
         </div>
       )}
       <Board

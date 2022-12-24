@@ -21,6 +21,9 @@ type BoardAction =
       payload?: LeaderboardItem;
     }
   | {
+      type: "restartReplay";
+    }
+  | {
       type: "finishReplay";
     };
 
@@ -112,6 +115,37 @@ function reducer(state: State, action: BoardAction | PlayerAction): State {
           ...cell,
           state: "hidden",
         })),
+        boardConfiguration: state.boardConfiguration,
+        replayActionIndex: 0,
+        startDate: state.startDate,
+        startTime: state.startTime,
+        finishTime: state.finishTime,
+        state: state.state,
+      };
+    }
+    case "restartReplay": {
+      if (
+        !state.boardConfiguration ||
+        state.boardConfiguration.type !== "replay"
+      ) {
+        throw new Error("Can't restart replay");
+      }
+
+      const initialCellId = state.actions.find(
+        (action) => action.type === "revealCell"
+      )?.payload.id;
+
+      if (!initialCellId) {
+        throw new Error("Can't replay without at least one revealed cell");
+      }
+
+      return {
+        actions: state.actions,
+        board: mineBoard(
+          state.boardConfiguration,
+          getEmptyBoard(state.boardConfiguration),
+          initialCellId
+        ),
         boardConfiguration: state.boardConfiguration,
         replayActionIndex: 0,
         startDate: state.startDate,
@@ -370,6 +404,9 @@ export function useBoard() {
     },
     startReplay(leaderboardItem?: LeaderboardItem) {
       dispatch({ type: "startReplay", payload: leaderboardItem });
+    },
+    restartReplay() {
+      dispatch({ type: "restartReplay" });
     },
   };
 }

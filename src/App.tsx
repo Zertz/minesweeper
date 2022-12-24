@@ -17,6 +17,7 @@ export function App() {
     flagCell,
     revealCell,
     startReplay,
+    restartReplay,
   } = useBoard();
 
   useEffect(() => {
@@ -34,9 +35,12 @@ export function App() {
       <Replay
         board={board}
         boardConfiguration={boardConfiguration}
+        startTime={startTime}
+        finishTime={finishTime}
         newGame={newGame}
         flagCell={flagCell}
         revealCell={revealCell}
+        restartReplay={restartReplay}
       />
     ) : (
       <Play
