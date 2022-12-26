@@ -1,6 +1,7 @@
 import { difficulties } from "./difficulties";
 import { formatMilliseconds } from "./formatMilliseconds";
 import { getRandomInt } from "./getRandomInt";
+import { t } from "./i18n";
 import {
   getFastestDailyChallenge,
   getFastestGames,
@@ -39,7 +40,9 @@ export function Home({
           }}
           type="button"
         >
-          <strong className="text-lg text-gray-300">Daily challenge</strong>
+          <strong className="text-lg text-gray-300">
+            {t("Daily challenge")}
+          </strong>
         </button>
         <ol className="self-center font-mono text-sm text-gray-400">
           <li>
@@ -69,9 +72,13 @@ export function Home({
               type="button"
             >
               <strong className="text-lg text-gray-300">
-                {boardConfiguration.difficulty}
+                {t(boardConfiguration.difficulty)}
               </strong>
-              <span className="text-sm text-gray-400">{`${boardConfiguration.x}x${boardConfiguration.y} · ${boardConfiguration.mines} mines`}</span>
+              <span className="text-sm text-gray-400">{`${
+                boardConfiguration.x
+              }x${boardConfiguration.y} · ${boardConfiguration.mines} ${t(
+                "mines"
+              )}`}</span>
             </button>
             <ol className="flex gap-2 self-center whitespace-nowrap font-mono text-sm text-gray-400">
               {["🥇", "🥈", "🥉"].map((medal, index) => (

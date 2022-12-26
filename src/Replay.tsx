@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { BackToMainMenu } from "./BackToMainMenu";
 import { Board } from "./Board";
+import { t } from "./i18n";
 import { UseBoard } from "./useBoard";
 
 export function Replay({
@@ -98,7 +99,7 @@ export function Replay({
         <button
           className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
           onClick={restartReplay}
-          title="Restart replay"
+          title={t("Restart replay")}
           type="button"
         >
           &#8634;

@@ -1,6 +1,7 @@
 import { BackToMainMenu } from "./BackToMainMenu";
 import { Board } from "./Board";
 import { formatMilliseconds } from "./formatMilliseconds";
+import { t } from "./i18n";
 import { getShareURL } from "./leaderboard";
 import { UseBoard } from "./useBoard";
 
@@ -35,9 +36,7 @@ export function Play({
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-700/75 text-gray-300">
           <span className="text-7xl">{state === "win" ? "🎉" : "💥"}</span>
           <span className="text-center text-2xl">
-            {state === "win"
-              ? "Awesome! You finished in"
-              : "Oh no! You blew it in"}
+            {t(state === "win" ? "You won in" : "You lost in")}
             <br />
             {formatMilliseconds(finishTime - startTime)}
           </span>
@@ -64,7 +63,7 @@ export function Play({
             }}
             type="button"
           >
-            Share replay
+            {t("Share replay")}
           </button>
           <button
             className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
@@ -72,7 +71,7 @@ export function Play({
             onClick={() => startGame(boardConfiguration)}
             type="button"
           >
-            &#8635; Try again
+            &#8635; {t("Try again")}
           </button>
           <BackToMainMenu newGame={newGame} />
         </div>
