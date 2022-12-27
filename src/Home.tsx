@@ -1,7 +1,7 @@
+import { useTranslation } from "./App";
 import { difficulties } from "./difficulties";
 import { formatMilliseconds } from "./formatMilliseconds";
 import { getRandomInt } from "./getRandomInt";
-import { t } from "./i18n";
 import {
   getFastestDailyChallenge,
   getFastestGames,
@@ -13,6 +13,8 @@ export function Home({
   startGame,
   startReplay,
 }: Pick<UseBoard, "startGame" | "startReplay">) {
+  const t = useTranslation();
+
   const fastestDailyChallenge = getFastestDailyChallenge();
 
   return (

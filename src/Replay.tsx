@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "./App";
 import { BackToMainMenu } from "./BackToMainMenu";
 import { Board } from "./Board";
-import { t } from "./i18n";
 import { UseBoard } from "./useBoard";
 
 export function Replay({
@@ -24,6 +24,8 @@ export function Replay({
   | "revealCell"
   | "restartReplay"
 >) {
+  const t = useTranslation();
+
   const [replayPercentage, setReplayPercentage] = useState<number>();
 
   const progressRef = useRef<HTMLDivElement>(null);

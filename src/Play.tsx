@@ -1,7 +1,7 @@
+import { useTranslation } from "./App";
 import { BackToMainMenu } from "./BackToMainMenu";
 import { Board } from "./Board";
 import { formatMilliseconds } from "./formatMilliseconds";
-import { t } from "./i18n";
 import { getShareURL } from "./leaderboard";
 import { UseBoard } from "./useBoard";
 
@@ -27,6 +27,8 @@ export function Play({
   | "flagCell"
   | "revealCell"
 >) {
+  const t = useTranslation();
+
   return (
     <>
       <div className="flex gap-4 p-4 pb-2" hidden={state !== "in-progress"}>

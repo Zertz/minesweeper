@@ -1,9 +1,16 @@
-type Language = "en" | "es" | "fr";
+export const languages = [
+  { k: "en", v: "English" },
+  { k: "es", v: "Español" },
+  { k: "fr", v: "Français" },
+] as const;
+
+export type Language = typeof languages[number]["k"];
 
 const translations: Record<
   string,
   Partial<Record<Exclude<Language, "en">, string>>
 > = {
+  Language: { es: "Idioma", fr: "Langue" },
   "Daily challenge": { es: "Desafío del día", fr: "Défi du jour" },
   Minesweeper: { es: "Buscaminas", fr: "Démineur" },
   Beginner: { es: "Principiante", fr: "Débutant" },
@@ -21,16 +28,14 @@ const translations: Record<
   "You lost in": { es: "Perdiste en", fr: "Vous avez perdu en" },
 };
 
-const language = (navigator.languages
+export const defaultLanguage = (navigator.languages
   .map((language) => language.substring(0, 2).toLowerCase())
-  .find((language) => language in translations) || "en") as Language;
+  .find((language) => language in translations) || languages[0].k) as Language;
 
-export function t(key: keyof typeof translations) {
+export function t(key: keyof typeof translations, language: Language) {
   if (language === "en") {
     return key;
   }
 
   return translations[key][language] || key;
 }
-
-document.title = t("Minesweeper");
