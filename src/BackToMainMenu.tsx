@@ -1,5 +1,5 @@
-import { useTranslation } from "./App";
 import { UseBoard } from "./useBoard";
+import { useTranslation } from "./useTranslation";
 
 export function BackToMainMenu({
   hideLabel,

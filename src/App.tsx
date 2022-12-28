@@ -1,42 +1,11 @@
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 import { getSharedGame } from "./getSharedGame";
 import { Home } from "./Home";
 import { defaultLanguage, Language, languages, t } from "./i18n";
 import { Play } from "./Play";
 import { Replay } from "./Replay";
 import { useBoard } from "./useBoard";
-
-const TranslationContext = createContext<(key: string) => string>((key) => key);
-
-function TranslationProvider({
-  children,
-  language,
-}: {
-  children: ReactNode;
-  language: Language;
-}) {
-  useEffect(() => {
-    document.title = t("Minesweeper", language);
-  }, [language]);
-
-  return (
-    <TranslationContext.Provider value={(key) => t(key, language)}>
-      {children}
-    </TranslationContext.Provider>
-  );
-}
-
-export function useTranslation() {
-  const t = useContext(TranslationContext);
-
-  return t;
-}
+import { TranslationProvider } from "./useTranslation";
 
 export function App() {
   const [language, setLanguage] = useState(defaultLanguage);

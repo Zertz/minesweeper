@@ -1,4 +1,3 @@
-import { useTranslation } from "./App";
 import { difficulties } from "./difficulties";
 import { formatMilliseconds } from "./formatMilliseconds";
 import { getRandomInt } from "./getRandomInt";
@@ -8,6 +7,7 @@ import {
   LeaderboardItem,
 } from "./leaderboard";
 import { UseBoard } from "./useBoard";
+import { useTranslation } from "./useTranslation";
 
 export function Home({
   startGame,

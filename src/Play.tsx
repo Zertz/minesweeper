@@ -1,9 +1,9 @@
-import { useTranslation } from "./App";
 import { BackToMainMenu } from "./BackToMainMenu";
 import { Board } from "./Board";
 import { formatMilliseconds } from "./formatMilliseconds";
 import { getShareURL } from "./leaderboard";
 import { UseBoard } from "./useBoard";
+import { useTranslation } from "./useTranslation";
 
 export function Play({
   board,

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { useTranslation } from "./App";
 import { BackToMainMenu } from "./BackToMainMenu";
 import { Board } from "./Board";
 import { UseBoard } from "./useBoard";
+import { useTranslation } from "./useTranslation";
 
 export function Replay({
   board,
