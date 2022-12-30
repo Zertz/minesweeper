@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Board } from "./Board";
 import { getSharedGame } from "./getSharedGame";
 import { Home } from "./Home";
-import { defaultLanguage, Language, languages, t } from "./i18n";
+import { Language, languages, t } from "./i18n";
 import { Play } from "./Play";
 import { Replay } from "./Replay";
 import { useBoard } from "./useBoard";
+import { useLanguage } from "./useLanguage";
 import { TranslationProvider } from "./useTranslation";
 
 export function App() {
-  const [language, setLanguage] = useState(defaultLanguage);
+  const [language, setLanguage] = useLanguage();
 
   const {
     board,

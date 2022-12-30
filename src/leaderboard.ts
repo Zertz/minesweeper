@@ -1,3 +1,4 @@
+import { isTruthy } from "./isTruthy";
 import { BoardConfiguration, StoredGameResult } from "./types";
 import { State } from "./useBoard";
 
@@ -7,10 +8,6 @@ export type LeaderboardItem = Pick<State, "actions"> & {
   startTime: number;
   finishTime: number;
 };
-
-function isDefined<T>(argument: T | undefined): argument is T {
-  return argument !== undefined;
-}
 
 function getLeaderboard(): LeaderboardItem[] {
   try {
@@ -34,7 +31,7 @@ function getLeaderboard(): LeaderboardItem[] {
           // 🤷‍♂️
         }
       })
-      .filter(isDefined);
+      .filter(isTruthy);
   } catch (e) {
     console.error(e);
 
