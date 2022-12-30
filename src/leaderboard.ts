@@ -42,7 +42,7 @@ function getLeaderboard(): LeaderboardItem[] {
   }
 }
 
-function encodeActions(actions: LeaderboardItem["actions"]) {
+export function encodeActions(actions: LeaderboardItem["actions"]) {
   return actions
     .map(({ type, payload, elapsedTime }) => {
       return `${type.substring(0, 1)}-${payload.id}-${elapsedTime}`;
@@ -56,11 +56,7 @@ function setLeaderboard(leaderboard: LeaderboardItem[]) {
       "leaderboard",
       JSON.stringify(
         leaderboard.map(({ actions, ...rest }) => ({
-          actions: actions
-            .map(({ type, payload, elapsedTime }) => {
-              return `${type.substring(0, 1)}-${payload.id}-${elapsedTime}`;
-            })
-            .join("_"),
+          actions: encodeActions(actions),
           ...rest,
         }))
       )
@@ -116,22 +112,4 @@ export function getFastestGames(
     })
     .sort((a, b) => a.finishTime - a.startTime - (b.finishTime - b.startTime))
     .filter((_, index) => index < limit);
-}
-
-export function getShareURL(id: BoardConfiguration["id"]) {
-  const leaderboard = getLeaderboard();
-
-  const game = leaderboard.find(
-    ({ boardConfiguration }) => boardConfiguration.id === id
-  );
-
-  if (!game) {
-    return;
-  }
-
-  const { actions, ...rest } = game;
-
-  return `${window.location.origin}?game=${encodeURIComponent(
-    JSON.stringify({ actions: encodeActions(actions), ...rest })
-  )}`;
 }

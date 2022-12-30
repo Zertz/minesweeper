@@ -5,8 +5,6 @@ export function getSharedGame() {
 
   const game = searchParams.get("game");
 
-  window.history.pushState({}, document.title, window.location.pathname);
-
   if (!game) {
     return;
   }

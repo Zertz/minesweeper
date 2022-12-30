@@ -6,6 +6,7 @@ import {
   getFastestGames,
   LeaderboardItem,
 } from "./leaderboard";
+import { getShareURL } from "./share";
 import { UseBoard } from "./useBoard";
 import { useTranslation } from "./useTranslation";
 
@@ -111,7 +112,12 @@ function Result({
   return (
     <button
       className="ml-0.5 transition-colors hover:text-gray-300"
-      onClick={() => startReplay(game)}
+      onClick={() => {
+        window.history.pushState({}, document.title, getShareURL(game));
+
+        startReplay(game);
+      }}
+      type="button"
     >
       {formatMilliseconds(game.finishTime - game.startTime)}
     </button>

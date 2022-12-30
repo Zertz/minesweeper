@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Board } from "./Board";
 import { getSharedGame } from "./getSharedGame";
 import { Home } from "./Home";
 import { defaultLanguage, Language, languages, t } from "./i18n";
@@ -13,6 +14,7 @@ export function App() {
   const {
     board,
     boardConfiguration,
+    game,
     startTime,
     finishTime,
     state,
@@ -34,34 +36,39 @@ export function App() {
     startReplay(sharedGame);
   }, [startReplay]);
 
+  const isReplay = boardConfiguration?.type === "replay";
+
   return (
     <>
       <TranslationProvider language={language}>
         {state === "idle" ? (
           <Home startGame={startGame} startReplay={startReplay} />
-        ) : boardConfiguration?.type === "replay" ? (
-          <Replay
-            board={board}
-            boardConfiguration={boardConfiguration}
-            startTime={startTime}
-            finishTime={finishTime}
-            newGame={newGame}
-            flagCell={flagCell}
-            revealCell={revealCell}
-            restartReplay={restartReplay}
-          />
         ) : (
-          <Play
-            board={board}
-            boardConfiguration={boardConfiguration}
-            startGame={startGame}
-            startTime={startTime}
-            finishTime={finishTime}
-            state={state}
-            newGame={newGame}
-            flagCell={flagCell}
-            revealCell={revealCell}
-          />
+          <>
+            {isReplay ? (
+              <Replay
+                board={board}
+                startTime={startTime}
+                finishTime={finishTime}
+                newGame={newGame}
+                restartReplay={restartReplay}
+              />
+            ) : (
+              <Play
+                game={game}
+                startGame={startGame}
+                state={state}
+                newGame={newGame}
+              />
+            )}
+            <Board
+              board={board}
+              boardConfiguration={boardConfiguration}
+              disabled={isReplay}
+              flagCell={flagCell}
+              revealCell={revealCell}
+            />
+          </>
         )}
       </TranslationProvider>
       <label className="sr-only" htmlFor="language">

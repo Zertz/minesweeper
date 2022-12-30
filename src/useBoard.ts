@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from "react";
+import { useCallback, useEffect, useReducer } from "react";
 import { flagCell } from "./flagCell";
 import { getEmptyBoard } from "./getEmptyBoard";
 import { addToLeaderboard, LeaderboardItem } from "./leaderboard";
@@ -45,6 +45,7 @@ export type State = {
   actions: (PlayerAction & { elapsedTime: number })[];
   board: Cell[] | undefined;
   boardConfiguration: BoardConfiguration | undefined;
+  game: LeaderboardItem | undefined;
   replayActionIndex: number | undefined;
   startDate: string | undefined;
   startTime: number | undefined;
@@ -56,6 +57,7 @@ const initialState: State = {
   actions: [],
   board: undefined,
   boardConfiguration: undefined,
+  game: undefined,
   replayActionIndex: undefined,
   startDate: undefined,
   startTime: undefined,
@@ -73,6 +75,7 @@ function reducer(state: State, action: BoardAction | PlayerAction): State {
         actions: [],
         board: getEmptyBoard(action.payload.boardConfiguration),
         boardConfiguration: action.payload.boardConfiguration,
+        game: undefined,
         replayActionIndex: undefined,
         startDate: new Date().toISOString(),
         startTime: undefined,
@@ -101,6 +104,7 @@ function reducer(state: State, action: BoardAction | PlayerAction): State {
             ...action.payload.boardConfiguration,
             type: "replay",
           },
+          game: action.payload,
           replayActionIndex: 0,
           startDate: action.payload.startDate,
           startTime: action.payload.startTime,
@@ -116,6 +120,7 @@ function reducer(state: State, action: BoardAction | PlayerAction): State {
           state: "hidden",
         })),
         boardConfiguration: state.boardConfiguration,
+        game: undefined,
         replayActionIndex: 0,
         startDate: state.startDate,
         startTime: state.startTime,
@@ -147,6 +152,7 @@ function reducer(state: State, action: BoardAction | PlayerAction): State {
           initialCellId
         ),
         boardConfiguration: state.boardConfiguration,
+        game: state.game,
         replayActionIndex: 0,
         startDate: state.startDate,
         startTime: state.startTime,
@@ -159,6 +165,7 @@ function reducer(state: State, action: BoardAction | PlayerAction): State {
         actions: state.actions,
         board: state.board,
         boardConfiguration: state.boardConfiguration,
+        game: state.game,
         replayActionIndex: undefined,
         startDate: state.startDate,
         startTime: state.startTime,
@@ -179,6 +186,7 @@ function reducer(state: State, action: BoardAction | PlayerAction): State {
           actions: state.actions,
           board: flagCell(state.board, action.payload.id),
           boardConfiguration: state.boardConfiguration,
+          game: state.game,
           replayActionIndex: state.replayActionIndex + 1,
           startDate: state.startDate,
           startTime: state.startTime,
@@ -206,6 +214,7 @@ function reducer(state: State, action: BoardAction | PlayerAction): State {
           actions: state.actions,
           board,
           boardConfiguration: state.boardConfiguration,
+          game: state.game,
           replayActionIndex: state.replayActionIndex + 1,
           startDate: state.startDate,
           startTime: state.startTime,
@@ -238,6 +247,7 @@ function reducer(state: State, action: BoardAction | PlayerAction): State {
         actions,
         board: flagCell(state.board, action.payload.id),
         boardConfiguration: state.boardConfiguration,
+        game: undefined,
         replayActionIndex: undefined,
         startDate: state.startDate,
         startTime: state.startTime || Date.now(),
@@ -283,6 +293,15 @@ function reducer(state: State, action: BoardAction | PlayerAction): State {
             }))
           : board,
         boardConfiguration: state.boardConfiguration,
+        game: didFinishGame
+          ? {
+              actions: state.actions,
+              boardConfiguration: state.boardConfiguration,
+              startDate: state.startDate || new Date().toISOString(),
+              startTime: state.startTime || Date.now(),
+              finishTime: Date.now(),
+            }
+          : undefined,
         replayActionIndex: undefined,
         startDate: state.startDate,
         startTime: state.startTime || Date.now(),
@@ -301,6 +320,7 @@ export function useBoard() {
       actions,
       board,
       boardConfiguration,
+      game,
       replayActionIndex,
       startDate,
       startTime,
@@ -384,6 +404,7 @@ export function useBoard() {
   return {
     board,
     boardConfiguration,
+    game,
     startTime,
     finishTime,
     state,
@@ -402,9 +423,9 @@ export function useBoard() {
     revealCell(id: string) {
       dispatch({ type: "revealCell", payload: { id } });
     },
-    startReplay(leaderboardItem?: LeaderboardItem) {
+    startReplay: useCallback((leaderboardItem: LeaderboardItem) => {
       dispatch({ type: "startReplay", payload: leaderboardItem });
-    },
+    }, []),
     restartReplay() {
       dispatch({ type: "restartReplay" });
     },

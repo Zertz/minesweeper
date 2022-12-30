@@ -1,32 +1,15 @@
 import { BackToMainMenu } from "./BackToMainMenu";
-import { Board } from "./Board";
 import { formatMilliseconds } from "./formatMilliseconds";
-import { getShareURL } from "./leaderboard";
+import { share } from "./share";
 import { UseBoard } from "./useBoard";
 import { useTranslation } from "./useTranslation";
 
 export function Play({
-  board,
-  boardConfiguration,
+  game,
   startGame,
-  startTime,
-  finishTime,
   state,
   newGame,
-  flagCell,
-  revealCell,
-}: Pick<
-  UseBoard,
-  | "board"
-  | "boardConfiguration"
-  | "startGame"
-  | "startTime"
-  | "finishTime"
-  | "state"
-  | "newGame"
-  | "flagCell"
-  | "revealCell"
->) {
+}: Pick<UseBoard, "game" | "startGame" | "state" | "newGame">) {
   const t = useTranslation();
 
   return (
@@ -34,35 +17,18 @@ export function Play({
       <div className="flex gap-4 p-4 pb-2" hidden={state !== "in-progress"}>
         <BackToMainMenu hideLabel newGame={newGame} />
       </div>
-      {boardConfiguration && startTime && finishTime && (
+      {game && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-700/75 text-gray-300">
           <span className="text-7xl">{state === "win" ? "🎉" : "💥"}</span>
           <span className="text-center text-2xl">
             {t(state === "win" ? "You won in" : "You lost in")}
             <br />
-            {formatMilliseconds(finishTime - startTime)}
+            {formatMilliseconds(game.finishTime - game.startTime)}
           </span>
           <button
             className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
             hidden={state !== "win"}
-            onClick={() => {
-              const shareUrl = getShareURL(boardConfiguration.id);
-
-              if (!shareUrl) {
-                return;
-              }
-
-              if (navigator.share) {
-                navigator.share({
-                  url: shareUrl,
-                });
-              } else {
-                navigator.clipboard
-                  .writeText(shareUrl)
-                  .then(console.info)
-                  .catch(console.error);
-              }
-            }}
+            onClick={() => share(game)}
             type="button"
           >
             {t("Share replay")}
@@ -70,7 +36,7 @@ export function Play({
           <button
             className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
             hidden={state !== "lose"}
-            onClick={() => startGame(boardConfiguration)}
+            onClick={() => startGame(game.boardConfiguration)}
             type="button"
           >
             &#8635; {t("Try again")}
@@ -78,12 +44,6 @@ export function Play({
           <BackToMainMenu newGame={newGame} />
         </div>
       )}
-      <Board
-        board={board}
-        boardConfiguration={boardConfiguration}
-        flagCell={flagCell}
-        revealCell={revealCell}
-      />
     </>
   );
 }
