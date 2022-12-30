@@ -1,5 +1,7 @@
 import { BackToMainMenu } from "./BackToMainMenu";
+import { difficulties } from "./difficulties";
 import { formatMilliseconds } from "./formatMilliseconds";
+import { getRandomInt } from "./getRandomInt";
 import { share } from "./share";
 import { UseBoard } from "./useBoard";
 import { useTranslation } from "./useTranslation";
@@ -36,10 +38,37 @@ export function Play({
           <button
             className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
             hidden={state !== "lose"}
-            onClick={() => startGame(game.boardConfiguration)}
+            onClick={() => {
+              if (game.boardConfiguration.type === "daily") {
+                startGame(game.boardConfiguration);
+
+                return;
+              }
+
+              const boardConfiguration = difficulties.find(
+                ({ difficulty }) =>
+                  difficulty === game.boardConfiguration.difficulty
+              );
+
+              if (!boardConfiguration) {
+                return;
+              }
+
+              startGame({
+                ...boardConfiguration,
+                id: crypto.randomUUID(),
+                seed: Date.now() + getRandomInt(-1000, 1000),
+                type: "random",
+              });
+            }}
             type="button"
           >
-            &#8635; {t("Try again")}
+            &#8635;{" "}
+            {t(
+              game.boardConfiguration.type === "daily"
+                ? "Try again"
+                : "New game"
+            )}
           </button>
           <BackToMainMenu newGame={newGame} />
         </div>

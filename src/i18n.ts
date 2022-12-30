@@ -27,6 +27,7 @@ const translations: Record<
   },
   "Share replay": { es: "Compartir repetición", fr: "Partager la reprise" },
   "Restart replay": { es: "Reiniciar repetición", fr: "Redémarrer la reprise" },
+  "New game": { es: "Nueva parte", fr: "Nouvelle partie" },
   "Try again": { es: "Volver a intentar", fr: "Réessayer" },
   "You won in": { es: "Ganaste en", fr: "Vous avez gagné en" },
   "You lost in": { es: "Perdiste en", fr: "Vous avez perdu en" },
