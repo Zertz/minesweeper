@@ -1,7 +1,6 @@
 import { BackToMainMenu } from "./BackToMainMenu";
-import { difficulties } from "./difficulties";
 import { formatMilliseconds } from "./formatMilliseconds";
-import { getRandomInt } from "./getRandomInt";
+import { getSeed } from "./getSeed";
 import { share } from "./share";
 import { UseBoard } from "./useBoard";
 import { useTranslation } from "./useTranslation";
@@ -45,19 +44,10 @@ export function Play({
                 return;
               }
 
-              const boardConfiguration = difficulties.find(
-                ({ difficulty }) =>
-                  difficulty === game.boardConfiguration.difficulty
-              );
-
-              if (!boardConfiguration) {
-                return;
-              }
-
               startGame({
-                ...boardConfiguration,
+                ...game.boardConfiguration,
                 id: crypto.randomUUID(),
-                seed: Date.now() + getRandomInt(-1000, 1000),
+                seed: getSeed(),
                 type: "random",
               });
             }}

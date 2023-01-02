@@ -1,6 +1,6 @@
 import { difficulties } from "./difficulties";
 import { formatMilliseconds } from "./formatMilliseconds";
-import { getRandomInt } from "./getRandomInt";
+import { getSeed } from "./getSeed";
 import {
   getFastestDailyChallenge,
   getFastestGames,
@@ -68,7 +68,7 @@ export function Home({
                 startGame({
                   ...boardConfiguration,
                   id: crypto.randomUUID(),
-                  seed: Date.now() + getRandomInt(-1000, 1000),
+                  seed: getSeed(),
                   type: "random",
                 });
               }}
