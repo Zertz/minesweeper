@@ -69,7 +69,7 @@ export function Replay({
         <span className="h-3 w-3 rounded-full bg-gray-300" />
         <span className="relative h-1 w-full bg-gray-500">
           <div
-            className="absolute inset-0 origin-left animate-scale-x bg-gray-200"
+            className="absolute inset-0 origin-left bg-gray-200"
             ref={progressRef}
             style={{
               animationDuration:
