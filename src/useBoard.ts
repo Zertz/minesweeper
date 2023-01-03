@@ -22,9 +22,6 @@ type BoardAction =
     }
   | {
       type: "restartReplay";
-    }
-  | {
-      type: "finishReplay";
     };
 
 type PlayerAction =
@@ -154,19 +151,6 @@ function reducer(state: State, action: BoardAction | PlayerAction): State {
         boardConfiguration: state.boardConfiguration,
         game: state.game,
         replayActionIndex: 0,
-        startDate: state.startDate,
-        startTime: state.startTime,
-        finishTime: state.finishTime,
-        state: state.state,
-      };
-    }
-    case "finishReplay": {
-      return {
-        actions: state.actions,
-        board: state.board,
-        boardConfiguration: state.boardConfiguration,
-        game: state.game,
-        replayActionIndex: undefined,
         startDate: state.startDate,
         startTime: state.startTime,
         finishTime: state.finishTime,
@@ -376,8 +360,6 @@ export function useBoard() {
     const action = actions.at(replayActionIndex);
 
     if (!action) {
-      dispatch({ type: "finishReplay" });
-
       return;
     }
 
