@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer } from "react";
+import { useEffect, useMemo, useReducer } from "react";
 import { flagCell } from "./flagCell";
 import { getEmptyBoard } from "./getEmptyBoard";
 import { addToLeaderboard, LeaderboardItem } from "./leaderboard";
@@ -383,6 +383,40 @@ export function useBoard() {
     };
   }, [actions, replayActionIndex]);
 
+  const {
+    newGame,
+    startGame,
+    flagCell,
+    revealCell,
+    startReplay,
+    restartReplay,
+  } = useMemo(
+    () => ({
+      newGame() {
+        dispatch({ type: "newGame" });
+      },
+      startGame(boardConfiguration: BoardConfiguration) {
+        dispatch({
+          type: "startGame",
+          payload: { boardConfiguration },
+        });
+      },
+      flagCell(id: string) {
+        dispatch({ type: "flagCell", payload: { id } });
+      },
+      revealCell(id: string) {
+        dispatch({ type: "revealCell", payload: { id } });
+      },
+      startReplay(leaderboardItem: LeaderboardItem) {
+        dispatch({ type: "startReplay", payload: leaderboardItem });
+      },
+      restartReplay() {
+        dispatch({ type: "restartReplay" });
+      },
+    }),
+    []
+  );
+
   return {
     board,
     boardConfiguration,
@@ -390,26 +424,11 @@ export function useBoard() {
     startTime,
     finishTime,
     state,
-    newGame() {
-      dispatch({ type: "newGame" });
-    },
-    startGame(boardConfiguration: BoardConfiguration) {
-      dispatch({
-        type: "startGame",
-        payload: { boardConfiguration },
-      });
-    },
-    flagCell(id: string) {
-      dispatch({ type: "flagCell", payload: { id } });
-    },
-    revealCell(id: string) {
-      dispatch({ type: "revealCell", payload: { id } });
-    },
-    startReplay: useCallback((leaderboardItem: LeaderboardItem) => {
-      dispatch({ type: "startReplay", payload: leaderboardItem });
-    }, []),
-    restartReplay() {
-      dispatch({ type: "restartReplay" });
-    },
+    newGame,
+    startGame,
+    flagCell,
+    revealCell,
+    startReplay,
+    restartReplay,
   };
 }

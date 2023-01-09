@@ -22,7 +22,7 @@ export function mineBoard(
 
   // Because a set number of mines is required, Math.random() alone is not great
   // because it will most often create boards with mines heavily biased towards
-  // the upper rows. By shuffling the board with a good enough algorith, the right
+  // the upper rows. By shuffling the board with a good enough algorithm, the right
   // number of mines can be distributed linearly and then the board can be sorted
   // back to it's original state.
   return shuffleArray([...board], boardConfiguration.seed)

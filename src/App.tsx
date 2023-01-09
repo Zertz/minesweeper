@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { Route, Switch } from "wouter";
 import { Board } from "./Board";
-import { getSharedGame } from "./getSharedGame";
+import { Daily } from "./Daily";
 import { Home } from "./Home";
 import { Language, languages, t } from "./i18n";
 import { Play } from "./Play";
@@ -27,67 +27,71 @@ export function App() {
     restartReplay,
   } = useBoard();
 
-  useEffect(() => {
-    const sharedGame = getSharedGame();
-
-    if (!sharedGame) {
-      return;
-    }
-
-    startReplay(sharedGame);
-  }, [startReplay]);
-
-  const isReplay = boardConfiguration?.type === "replay";
-
   return (
-    <>
-      <TranslationProvider language={language}>
-        {state === "idle" ? (
-          <Home startGame={startGame} startReplay={startReplay} />
-        ) : (
-          <>
-            {isReplay ? (
-              <Replay
-                board={board}
-                startTime={startTime}
-                finishTime={finishTime}
-                newGame={newGame}
-                restartReplay={restartReplay}
-              />
-            ) : (
+    <TranslationProvider language={language}>
+      <Switch>
+        <Route path="/">
+          <Home newGame={newGame} />
+          <label className="sr-only" htmlFor="language">
+            {t("Language", language)}
+          </label>
+          <select
+            id="language"
+            className="my-4 mx-auto rounded border border-gray-300 bg-gray-700 p-1 text-sm text-gray-300"
+            onChange={({ target: { value } }) => setLanguage(value as Language)}
+            value={language}
+          >
+            {languages.map(({ k, v }) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
+            ))}
+          </select>
+        </Route>
+        <Route path="/daily">
+          <Daily game={game} startGame={startGame} state={state} />
+          <Board
+            board={board}
+            boardConfiguration={boardConfiguration}
+            flagCell={flagCell}
+            revealCell={revealCell}
+          />
+        </Route>
+        <Route path="/replay">
+          <Replay
+            board={board}
+            startTime={startTime}
+            finishTime={finishTime}
+            restartReplay={restartReplay}
+            startReplay={startReplay}
+          />
+          <Board
+            board={board}
+            boardConfiguration={boardConfiguration}
+            disabled
+            flagCell={flagCell}
+            revealCell={revealCell}
+          />
+        </Route>
+        <Route path="/play/:difficulty/:seed?">
+          {(params) => (
+            <>
               <Play
                 game={game}
                 startGame={startGame}
                 state={state}
-                newGame={newGame}
+                {...params}
               />
-            )}
-            <Board
-              board={board}
-              boardConfiguration={boardConfiguration}
-              disabled={isReplay}
-              flagCell={flagCell}
-              revealCell={revealCell}
-            />
-          </>
-        )}
-      </TranslationProvider>
-      <label className="sr-only" htmlFor="language">
-        {t("Language", language)}
-      </label>
-      <select
-        id="language"
-        className="my-4 mx-auto rounded border border-gray-300 bg-gray-700 p-1 text-sm text-gray-300"
-        hidden={state !== "idle"}
-        onChange={({ target: { value } }) => setLanguage(value as Language)}
-        value={language}
-      >
-        {languages.map(({ k, v }) => (
-          <option key={k} value={k}>
-            {v}
-          </option>
-        ))}
-      </select>
-    </>
+              <Board
+                board={board}
+                boardConfiguration={boardConfiguration}
+                flagCell={flagCell}
+                revealCell={revealCell}
+              />
+            </>
+          )}
+        </Route>
+      </Switch>
+    </TranslationProvider>
   );
 }

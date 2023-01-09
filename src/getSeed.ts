@@ -1,10 +1,9 @@
-function getRandomInt(min: number, max: number) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
+import { customAlphabet } from "nanoid/non-secure";
 
-  return Math.floor(Math.random() * (max - min + 1) + min);
-}
+export const seedLength = 12;
+
+const nanoid = customAlphabet("1234567890", seedLength);
 
 export function getSeed() {
-  return Date.now() + getRandomInt(-1000, 1000);
+  return Number(nanoid().padEnd(seedLength, "0"));
 }

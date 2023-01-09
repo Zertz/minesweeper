@@ -1,7 +1,7 @@
 import { encodeActions, LeaderboardItem } from "./leaderboard";
 
 export function getShareURL({ actions, ...rest }: LeaderboardItem) {
-  return `/?game=${encodeURIComponent(
+  return `/replay?game=${encodeURIComponent(
     JSON.stringify({ actions: encodeActions(actions), ...rest })
   )}`;
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { BackToMainMenu } from "./BackToMainMenu";
+import { getSharedGame } from "./getSharedGame";
 import { UseBoard } from "./useBoard";
 import { useTranslation } from "./useTranslation";
 
@@ -7,13 +8,23 @@ export function Replay({
   board,
   startTime,
   finishTime,
-  newGame,
   restartReplay,
+  startReplay,
 }: Pick<
   UseBoard,
-  "board" | "startTime" | "finishTime" | "newGame" | "restartReplay"
+  "board" | "startTime" | "finishTime" | "restartReplay" | "startReplay"
 >) {
   const t = useTranslation();
+
+  useEffect(() => {
+    const sharedGame = getSharedGame();
+
+    if (!sharedGame) {
+      return;
+    }
+
+    startReplay(sharedGame);
+  }, [startReplay]);
 
   const [replayPercentage, setReplayPercentage] = useState<number>();
 
@@ -64,7 +75,7 @@ export function Replay({
 
   return (
     <div className="flex justify-between gap-4 p-4 pb-2">
-      <BackToMainMenu hideLabel newGame={newGame} />
+      <BackToMainMenu hideLabel />
       <div className="flex flex-grow items-center">
         <span className="h-3 w-3 rounded-full bg-gray-300" />
         <span className="relative h-1 w-full bg-gray-500">

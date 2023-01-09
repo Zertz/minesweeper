@@ -1,68 +1,67 @@
-import { BackToMainMenu } from "./BackToMainMenu";
-import { formatMilliseconds } from "./formatMilliseconds";
-import { getSeed } from "./getSeed";
-import { share } from "./share";
+import { useEffect } from "react";
+import { Link, useLocation } from "wouter";
+import { difficulties } from "./difficulties";
+import { Game } from "./Game";
+import { getSeed, seedLength } from "./getSeed";
 import { UseBoard } from "./useBoard";
-import { useTranslation } from "./useTranslation";
 
 export function Play({
   game,
   startGame,
   state,
-  newGame,
-}: Pick<UseBoard, "game" | "startGame" | "state" | "newGame">) {
-  const t = useTranslation();
+  ...params
+}: { difficulty: string; seed: string | undefined } & Pick<
+  UseBoard,
+  "game" | "startGame" | "state"
+>) {
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!params.seed) {
+      setLocation(`/play/${params.difficulty}/${getSeed()}`);
+
+      return;
+    }
+
+    const seed = Number(params.seed);
+
+    if (!Number.isInteger(seed) || `${seed}`.length !== seedLength) {
+      console.warn(`Invalid seed: ${params.seed}`);
+
+      setLocation("/");
+
+      return;
+    }
+
+    const boardConfiguration = difficulties.find(
+      (config) => config.difficulty.toLowerCase() === params.difficulty
+    );
+
+    if (!boardConfiguration) {
+      console.warn(`Invalid difficulty: ${params.difficulty}`);
+
+      setLocation("/");
+
+      return;
+    }
+
+    startGame({
+      ...boardConfiguration,
+      id: crypto.randomUUID(),
+      seed,
+      type: "random",
+    });
+  }, [params.difficulty, params.seed, setLocation, startGame]);
 
   return (
-    <>
-      <div className="flex gap-4 p-4 pb-2" hidden={state !== "in-progress"}>
-        <BackToMainMenu hideLabel newGame={newGame} />
-      </div>
-      {game && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-700/75 text-gray-300">
-          <span className="text-7xl">{state === "win" ? "🎉" : "💥"}</span>
-          <span className="text-center text-2xl">
-            {t(state === "win" ? "You won in" : "You lost in")}
-            <br />
-            {formatMilliseconds(game.finishTime - game.startTime)}
-          </span>
-          <button
-            className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
-            hidden={state !== "win"}
-            onClick={() => share(game)}
-            type="button"
-          >
-            {t("Share replay")}
-          </button>
-          <button
-            className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
-            hidden={state !== "lose"}
-            onClick={() => {
-              if (game.boardConfiguration.type === "daily") {
-                startGame(game.boardConfiguration);
-
-                return;
-              }
-
-              startGame({
-                ...game.boardConfiguration,
-                id: crypto.randomUUID(),
-                seed: getSeed(),
-                type: "random",
-              });
-            }}
-            type="button"
-          >
-            &#8635;{" "}
-            {t(
-              game.boardConfiguration.type === "daily"
-                ? "Try again"
-                : "New game"
-            )}
-          </button>
-          <BackToMainMenu newGame={newGame} />
-        </div>
-      )}
-    </>
+    <Game game={game} state={state}>
+      <Link
+        className="rounded border border-gray-300 bg-gray-700 px-2 py-1 text-gray-300 transition-colors hover:border-gray-200 hover:bg-gray-600"
+        hidden={state !== "lose"}
+        href={`/play/${game?.boardConfiguration.difficulty.toLowerCase()}`}
+      >
+        &#8635; New game
+      </Link>
+    </Game>
   );
 }
